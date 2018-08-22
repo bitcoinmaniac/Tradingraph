@@ -1,5 +1,5 @@
 {
-  "name": "crypto-chart",
+  "name": "tradingraph",
   "version": "1.0.1",
   "description": "The VUE component for visualization market-data of crypto exchanges.",
   "main": "src/index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/rpiontik/crypto-chart.git"
+    "url": "git+ssh://git@github.com/bitcoinmaniac/Tradingraph.git"
   },
   "keywords": [
     "trading",
@@ -16,12 +16,12 @@
     "crypto",
     "VUE"
   ],
-  "author": "R.Piontik",
+  "author": "Cryptonit",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rpiontik/crypto-chart/issues"
+    "url": "https://github.com/bitcoinmaniac/Tradingraph/issues"
   },
-  "homepage": "https://github.com/rpiontik/crypto-chart#readme",
+  "homepage": "https://github.com/bitcoinmaniac/Tradingraph#readme",
   "dependencies": {
     "lodash.clonedeep": "^4.5.0",
     "vue": "^2.5.16"
