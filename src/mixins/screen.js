@@ -24,14 +24,27 @@ export default {
       }
     }
   },
-  created () {
-    window.addEventListener('resize', this._onResize);
-  },
-  destroyed () {
-    window.removeEventListener('resize', this._onResize);
-  },
-  mounted () {
-    this._onResize();
+  computed: {
+    // Pixel number includes zoom koof
+    dpi () {
+      return this.chart.width / this.interval.width * this.zoom.value;
+    },
+    // Current time exposition
+    exposition () {
+      return +((this.chart.width / this.dpi).toFixed(5));
+    },
+    // Coefficient of transformations native pixels to internal for X
+    koofScreenX () {
+      return ('clientWidth' in this) && (+this.clientWidth) !== 0 ? this.width / this.clientWidth : 1;
+    },
+    // Coefficient of transformations native pixels to internal for Y
+    koofScreenY () {
+      return this._calcKoofScreenY();
+    },
+    // Base for font height
+    fontHeight () {
+      return this.koofScreenY > 0 ? 16 * this.koofScreenY : 16;
+    }
   },
   watch: {
     'zoom.value' () {
@@ -40,6 +53,12 @@ export default {
     'interval.offset' () {
       this.onRedraw();
     }
+  },
+  created () {
+    window.addEventListener('resize', this._onResize);
+  },
+  mounted () {
+    this._onResize();
   },
   methods: {
     _calcKoofScreenY() {
@@ -84,7 +103,7 @@ export default {
     onZoom (zoom, targetMoment) {
       let oldExposition = this.exposition;
       let zoomValue = this.rebaseZoom(this.zoom.value * zoom);
-      this.zoom.value = zoomValue < 1 ? 1 :this.rebaseZoom(this.zoom.value * zoom);
+      this.zoom.value = zoomValue < 1 ? 1 : this.rebaseZoom(this.zoom.value * zoom);
       this.interval.offset = this._rebaseOffset(
         this.interval.offset + (oldExposition - this.exposition) *
         ((targetMoment - this.interval.offset) / this.exposition)
@@ -99,30 +118,28 @@ export default {
 
       return Math.floor(offset);
     },
-    onScroll (params) {
+    onSwipe (params) {
       this.interval.offset = this._rebaseOffset(this.interval.offset + params.offsetX);
     },
-  },
-  computed: {
-    // Pixel number includes zoom koof
-    dpi () {
-      return this.chart.width / this.interval.width * this.zoom.value;
-    },
-    // Current time exposition
-    exposition () {
-      return +((this.chart.width / this.dpi).toFixed(5));
-    },
-    // Coefficient of transformations native pixels to internal for X
-    koofScreenX () {
-      return ('clientWidth' in this) && (+this.clientWidth) !== 0 ? this.width / this.clientWidth : 1;
-    },
-    // Coefficient of transformations native pixels to internal for Y
-    koofScreenY () {
-      return this._calcKoofScreenY();
-    },
-    // Base for font height
-    fontHeight () {
-      return this.koofScreenY > 0 ? 16 * this.koofScreenY : 16;
+    onHandle (offset, position) {
+      switch (position) {
+        case 'left': {
+          this.onZoom((this.exposition + (offset - this.interval.offset)) / (this.exposition), this.interval.offset + this.exposition + (offset - this.interval.offset));
+          break;
+        }
+        case 'center': {
+          this.interval.offset = offset;
+          break;
+        }
+        case 'right': {
+          this.onZoom((this.exposition - (offset - this.interval.offset)) / (this.exposition), this.interval.offset);
+          break;
+        }
+        default: break;
+      }
     }
+  },
+  destroyed () {
+    window.removeEventListener('resize', this._onResize);
   }
 };

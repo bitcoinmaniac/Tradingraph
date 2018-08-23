@@ -16,8 +16,8 @@ export default {
           isScrolling: false,
           inertTimer: setInterval(() => {
             if (!this.eventsMouse.scrolling.isScrolling && (Math.abs(this.eventsMouse.scrolling.power) > 1)) {
-              if ('onScroll' in this) {
-                this.onScroll({
+              if ('onSwipe' in this) {
+                this.onSwipe({
                   offsetX : this.eventsMouse.scrolling.power / this.dpi,
                   offsetY : 0
                 });
@@ -47,8 +47,8 @@ export default {
           if (this.eventsMouse.scrolling.isScrolling) {
             this.eventsMouse.scrolling.power = (this.eventsMouse.scrolling.clientX - event.clientX) * this.koofScreenX;
             this.eventsMouse.scrolling.clientX = event.clientX;
-            if ('onScroll' in this) {
-              this.onScroll({
+            if ('onSwipe' in this) {
+              this.onSwipe({
                 offsetX : this.eventsMouse.scrolling.power / this.dpi,
                 offsetY : 0
               });

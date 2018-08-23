@@ -178,7 +178,7 @@ class CandlesWorker {
     if (!this.data.treeReady) {
       this.makeTree();
     }
-    console.log('RENDER', this.data.start > 0, this.data.start, offset);
+    // console.log('RENDER', this.data.start > 0, this.data.start, offset);
     if (this.data.start > 0 && this.data.start < offset) {
       let theCase = this.findCandleWidthForUse(exposition, viewWidth);
       let theData = this.data.tree[theCase];
@@ -258,7 +258,7 @@ class CandlesWorker {
   }
   renderAverage (offset, exposition, viewWidth, viewHeight) {
     let dataLength = this.averageData.length;
-    let step = viewWidth / this.averageData.length;
+    let step = (viewWidth - 12) / this.averageData.length;
     let result = {
       minTimestamp: this.averageData[0].date,
       maxTimestamp: this.averageData[dataLength - 1].date,
@@ -268,12 +268,9 @@ class CandlesWorker {
     let highest = sortedByAverage[dataLength - 1].average;
     let lowest = sortedByAverage[0].average;
     let yMultiplyer = 44 / (highest - lowest);
-    for (let i = 0; i < dataLength; i++) {
-      if (i === 0) {
-        result.path.push(`M${step * i} ${yMultiplyer * (highest - this.averageData[i].average) + 3}`);
-      } else {
-        result.path.push(`L${step * i} ${yMultiplyer * (highest - this.averageData[i].average) + 3}`);
-      }
+    result.path.push(`M6 ${yMultiplyer * (highest - this.averageData[0].average) + 3}`);
+    for (let i = 1; i < dataLength; i++) {
+      result.path.push(`L${step * i + 6} ${yMultiplyer * (highest - this.averageData[i].average) + 3}`);
     }
     this.sendMessage('RENDERED_AVERAGE', result);
   }

@@ -5,6 +5,8 @@ export default {
         case 'mousedown':
           this.eventsMouse.scrolling.clientX = event.clientX;
           this.eventsMouse.scrolling.clientY = event.clientY;
+          this.eventsMouse.scrolling.layerX = event.layerX;
+          this.eventsMouse.scrolling.layerY = event.layerY;
           this.eventsMouse.scrolling.isScrolling = true;
           break;
         case 'mousemove':
@@ -17,11 +19,11 @@ export default {
           if (this.eventsMouse.scrolling.isScrolling) {
             this.eventsMouse.scrolling.power = (this.eventsMouse.scrolling.clientX - event.clientX) * this.koofScreenX;
             this.eventsMouse.scrolling.clientX = event.clientX;
-            if ('onScroll' in this) {
-              this.onScroll({
+            if ('onSwipe' in this) {
+              this.onSwipe({
                 offsetX : this.eventsMouse.scrolling.power / this.dpi,
                 offsetY : 0
-              });
+              }, event);
             }
           }
           break;
@@ -41,11 +43,13 @@ export default {
           power: 0,
           clientX: 0,
           clientY: 0,
+          layerX: 0,
+          layerY: 0,
           isScrolling: false,
           inertTimer: setInterval(() => {
             if (!this.eventsMouse.scrolling.isScrolling && (Math.abs(this.eventsMouse.scrolling.power) > 1)) {
-              if ('onScroll' in this) {
-                this.onScroll({
+              if ('onSwipe' in this) {
+                this.onSwipe({
                   offsetX : this.eventsMouse.scrolling.power / this.dpi,
                   offsetY : 0
                 });

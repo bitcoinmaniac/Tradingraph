@@ -19,7 +19,7 @@ export default {
     intervalWidth: {
       type: Number,
       required: false,
-      default: 86400
+      default: (new Date()).getTime() / 1e3
     },
     initExposition: {
       type: Number,

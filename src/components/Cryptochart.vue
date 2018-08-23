@@ -42,7 +42,8 @@
                    :candles="candles" :interactive="interactive" />
       </g>
     </svg>
-    <navigator :width="chart.width" :average="average" :offset="interval.offset" :exposition="exposition"/>
+    <navigator :width="chart.width" :average="average" :offset="interval.offset" :exposition="exposition"
+               @handler="onHandle"/>
   </div>
 </template>
 
