@@ -58,8 +58,8 @@
   import MixinWorkers from '../mixins/workers';
   import MixinOptions from '../mixins/options';
 
-  import AxisX from "./Axis/axisX";
-  import AxisY from "./Axis/axisY";
+  import AxisX from "./Axis/AxisX";
+  import AxisY from "./Axis/AxisY";
   import Crosshair from "./Intercative/Crosshair"
   import Navigator from "./Navigator/Navigator"
 

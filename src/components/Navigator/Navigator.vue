@@ -79,7 +79,7 @@
         return this.average.path && this.average.path.join() || '';
       },
       xMultiplier () {
-        return this.width / (this.average.maxTimestamp - this.average.minTimestamp);
+        return (this.width - 2 * this.handleWidth) / (this.average.maxTimestamp - this.average.minTimestamp);
       },
       leftX () {
         if (this.eventsMouse.scrolling.isScrolling) {
@@ -108,13 +108,13 @@
         return `M${this.rightX - this.handleWidth} 0, L${this.rightX} 0,
                 L${this.rightX} ${this.height}, L${this.rightX - this.handleWidth} ${this.height}`;
       },
-      isRightHandle () {
+      isLeftHandle () {
         return this.lastHandle !== this.HANDLES.CENTER && this.lastHandle !== this.HANDLES.RIGHT &&
           this.eventsMouse.scrolling.layerX - this.leftX >= -2 &&
           this.eventsMouse.scrolling.layerX - this.leftX <= this.handleWidth + 2 ||
           this.lastHandle === this.HANDLES.LEFT;
       },
-      isLeftHandle () {
+      isRightHandle () {
         return this.lastHandle !== this.HANDLES.LEFT && this.lastHandle !== this.HANDLES.CENTER &&
           this.eventsMouse.scrolling.layerX - this.rightX >= -2 &&
           this.eventsMouse.scrolling.layerX - this.rightX <= this.handleWidth + 2 ||
@@ -137,9 +137,9 @@
     },
     methods: {
       onSwipe (notInteresting, event) {
-        if (this.isRightHandle) {
+        if (this.isLeftHandle) {
           this.lastHandle = this.HANDLES.LEFT;
-          let offset = this.checkForLeftEdge(this.computeOffset());
+          let offset = this.checkForLeftEdge(this.convertCurrentX());
           let exposition = (this.rightX - event.layerX) / this.xMultiplier;
           if (this.isExpositionValid(exposition)) {
             this.expositionLimitLeft = false;
@@ -148,10 +148,10 @@
           } else {
             this.expositionLimitLeft = true;
           }
-        } else if (this.isLeftHandle) {
+        } else if (this.isRightHandle) {
           this.lastHandle = this.HANDLES.RIGHT;
           let offset = this.average.minTimestamp + this.leftX / this.xMultiplier;
-          let exposition = this.checkForRightEdge(this.computeOffset() - offset);
+          let exposition = this.checkForRightEdge(this.convertCurrentX() - offset);
           if (this.isExpositionValid(exposition)) {
             this.expositionLimitRight = false;
             this.fixed.right = event.layerX;
@@ -166,7 +166,7 @@
           }
           this.fixed.left = event.layerX + this.startCenterDiff;
           this.fixed.right = this.fixed.left + this.startExposition;
-          let offset = this.computeOffset(this.startCenterDiff);
+          let offset = this.convertCurrentX(this.startCenterDiff);
           offset = this.checkForRightEdge(offset);
           offset = this.checkForLeftEdge(offset);
           this.lastHandle = this.HANDLES.CENTER;
@@ -176,7 +176,7 @@
         }
         this.eventsMouse.scrolling.layerX = event.layerX;
       },
-      computeOffset (additional = 0) {
+      convertCurrentX (additional = 0) {
         return this.average.minTimestamp + (event.layerX + additional) / this.xMultiplier;
       },
       checkForRightEdge (offset) {

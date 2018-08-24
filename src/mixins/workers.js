@@ -75,6 +75,9 @@ export default {
         }
         case 'RENDERED_AVERAGE' : {
           this.average = message.data.body;
+          if (message.data.body.minTimestamp) {
+            this.interval.firstPoint = message.data.body.minTimestamp;
+          }
         }
         default: break;
       }

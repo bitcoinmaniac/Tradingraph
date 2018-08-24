@@ -20,6 +20,7 @@ export default {
       },
       interval: {
         width: this.intervalWidth,
+        firstPoint: 0,
         offset: this.intervalStartOffset ? +this.intervalStartOffset : 0
       }
     }
@@ -128,8 +129,9 @@ export default {
         offset = 0;
       } else if (offset > this.interval.width - this.exposition) {
         offset = this.interval.width - this.exposition;
+      } else if (offset < this.interval.firstPoint) {
+        offset = this.interval.firstPoint;
       }
-
       return Math.floor(offset);
     },
     setView (offset = this.interval.offset, exposition = this.exposition) {
