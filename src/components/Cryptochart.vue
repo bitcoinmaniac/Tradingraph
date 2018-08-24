@@ -43,7 +43,7 @@
       </g>
     </svg>
     <navigator :width="chart.width" :average="average" :offset="interval.offset" :exposition="exposition"
-               @handler="onHandle"/>
+               @handler="onHandle" :minZoom="minExposition" :maxZoom="maxExposition"/>
   </div>
 </template>
 

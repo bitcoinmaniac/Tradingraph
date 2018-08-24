@@ -44,6 +44,24 @@ export default {
     // Base for font height
     fontHeight () {
       return this.koofScreenY > 0 ? 16 * this.koofScreenY : 16;
+    },
+    maxPart () {
+      return this.zoom.time_parts[this.zoom.time_parts.length - 1];
+    },
+    minPart () {
+      return this.zoom.time_parts[0];
+    },
+    minExposition () {
+      return this.minPart * 3
+    },
+    maxExposition () {
+      return this.maxPart * this.zoom.time_parts.length
+    },
+    minZoom () {
+      return this.interval.width / (this.maxExposition);
+    },
+    maxZoom () {
+      return this.interval.width / (this.minExposition)
     }
   },
   watch: {
@@ -84,18 +102,14 @@ export default {
       }
     },
     _rebaseZoomByParams (params, zoom) {
-      let maxPart = params.zoom.time_parts[params.zoom.time_parts.length - 1];
-      let minPart = params.zoom.time_parts[0];
-      let minZoom = params.interval.width / (maxPart * params.zoom.time_parts.length);
-      let maxZoom = params.interval.width / (minPart * 3);
-      let result = zoom < minZoom ? minZoom : zoom;
+      let result = zoom < this.minZoom ? this.minZoom : zoom;
 
       if (this.candleWidths && this.candleWidths.length) {
         let maxCandleWidth = this.candleWidths[this.candleWidths.length - 1];
-        minZoom = params.interval.width / (maxCandleWidth * this.chart.width / 3);
-        result = result < minZoom ? minZoom : result;
+        this.minZoom = params.interval.width / (maxCandleWidth * this.chart.width / 3);
+        result = result < this.minZoom ? this.minZoom : result;
       }
-      return result > maxZoom ? maxZoom : result;
+      return result > this.maxZoom ? this.maxZoom : result;
     },
     rebaseZoom (zoom) {
       return this._rebaseZoomByParams(this, zoom);
@@ -118,21 +132,25 @@ export default {
 
       return Math.floor(offset);
     },
+    setView (offset = this.interval.offset, exposition = this.exposition) {
+      this.interval.offset = this._rebaseOffset(offset);
+      this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
+    },
     onSwipe (params) {
       this.interval.offset = this._rebaseOffset(this.interval.offset + params.offsetX);
     },
-    onHandle (offset, position) {
+    onHandle (data, position) {
       switch (position) {
         case 'left': {
-          this.onZoom((this.exposition + (offset - this.interval.offset)) / (this.exposition), this.interval.offset + this.exposition + (offset - this.interval.offset));
+          this.setView(data.offset, data.exposition);
           break;
         }
         case 'center': {
-          this.interval.offset = offset;
+          this.setView(data.offset);
           break;
         }
         case 'right': {
-          this.onZoom((this.exposition - (offset - this.interval.offset)) / (this.exposition), this.interval.offset);
+          this.setView(data.offset, data.exposition);
           break;
         }
         default: break;
