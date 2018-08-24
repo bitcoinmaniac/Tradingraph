@@ -1,6 +1,6 @@
 <template>
   <g>
-    <g v-for="time in AxisX" :transform="`translate(${time.x}, 0)`" :key="time.time">
+    <g v-for="time in axisX" :transform="`translate(${time.x}, 0)`" :key="time.time">
       <line :y1="chartHeight - 20" :y2="chartHeight - 15" :x1="xOffset" :x2="xOffset" class="axis-x" opacity="0.3"></line>
       <text :y="chartHeight - 5" style="text-anchor: middle;" font-size="10">
         {{time.time | time(timePart)}}
