@@ -146,12 +146,11 @@
     },
     methods: {
       onSwipe (notInteresting, event) {
-        console.log(event, this);
         if (this.isLeftHandle) {
           this.lastHandle = this.HANDLES.LEFT;
           let offset = this.convertCurrentX();
           let exposition = (this.rightX - event.layerX) / this.xMultiplier;
-          if (this.isExpositionValid(exposition) && this.checkForLeftEdge(offset)) {
+          if (this.isExpositionValid(exposition) && this.checkForLeftEdge(offset, exposition)) {
             this.expositionLimitLeft = false;
             this.fixed.left = event.layerX;
             this.$emit('handler', {offset, exposition}, 'left');
@@ -176,7 +175,7 @@
           }
           this.lastHandle = this.HANDLES.CENTER;
           let offset = this.convertCurrentX(this.startCenterDiff);
-          if (this.checkForRightEdge(offset) && this.checkForLeftEdge(offset)) {
+          if (this.checkForRightEdge(offset, this.startExposition / this.xMultiplier) && this.checkForLeftEdge(offset)) {
             this.fixed.left = event.layerX + this.startCenterDiff;
             this.fixed.right = this.fixed.left + this.startExposition;
             this.$emit('handler', {offset}, 'center');
@@ -189,8 +188,8 @@
       convertCurrentX (additional = 0) {
         return this.average.minTimestamp + (event.layerX + additional) / this.xMultiplier;
       },
-      checkForRightEdge (offset) {
-        return (offset + this.exposition) < this.average.maxTimestamp + this.handleWidth / this.xMultiplier
+      checkForRightEdge (offset, exposition = this.exposition) {
+        return (offset + exposition) < this.average.maxTimestamp + this.handleWidth / this.xMultiplier
       },
       checkForLeftEdge (offset) {
         return (offset) > this.average.minTimestamp - this.handleWidth
