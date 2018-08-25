@@ -258,7 +258,7 @@ class CandlesWorker {
   }
   renderAverage (offset, exposition, viewWidth, viewHeight) {
     let dataLength = this.averageData.length;
-    let step = (viewWidth - 12) / this.averageData.length;
+    let step = (viewWidth) / this.averageData.length;
     let result = {
       minTimestamp: this.averageData[0].date,
       maxTimestamp: this.averageData[dataLength - 1].date,
@@ -267,10 +267,10 @@ class CandlesWorker {
     let sortedByAverage = this.averageData.slice().sort((a, b) => {return a.average - b.average;});
     let highest = sortedByAverage[dataLength - 1].average;
     let lowest = sortedByAverage[0].average;
-    let yMultiplyer = 44 / (highest - lowest);
-    result.path.push(`M6 ${yMultiplyer * (highest - this.averageData[0].average) + 3}`);
+    let yMultiplyer = 50 / (highest - lowest);
+    result.path.push(`M6 ${yMultiplyer * (highest - this.averageData[0].average)}`);
     for (let i = 1; i < dataLength; i++) {
-      result.path.push(`L${step * i + 6} ${yMultiplyer * (highest - this.averageData[i].average) + 3}`);
+      result.path.push(`L${step * i} ${yMultiplyer * (highest - this.averageData[i].average)}`);
     }
     this.sendMessage('RENDERED_AVERAGE', result);
   }

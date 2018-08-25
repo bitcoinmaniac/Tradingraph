@@ -5,13 +5,15 @@
        @mouseup.prevent="_onMixinMouse"
        @mouseleave.prevent="_onMixinMouse">
     <line x1="0" :x2="width" stroke="black" opacity="0.3"/>
-    <g>
-      <path class="candles-path-volume" fill="transparent" stroke="rgba(21,101,192,0.8)" :d="navigatorPath"/>
-    </g>
-    <g>
-      <path fill="rgba(21,101,192,0.8)" :class="{'please-stop-handle': expositionLimitLeft}" :d="left"/>
-      <path fill="rgba(21,101,192,0.1)" :class="{'please-stop-center': expositionLimit}" :d="center"></path>
-      <path fill="rgba(21,101,192,0.8)" :class="{'please-stop-handle': expositionLimitRight}" :d="right"/>
+    <g :transform="`translate(${handleWidth}) scale(${(width - 2 * handleWidth) / width})`">
+      <g :transform="`translate(0, ${yIndent}) scale(1, ${(height - 2 * yIndent) / height})`">
+        <path class="candles-path-volume" fill="transparent" stroke="rgba(21,101,192,0.8)" :d="navigatorPath"/>
+      </g>
+      <g>
+        <path fill="rgba(21,101,192,0.8)" :class="{'please-stop-handle': expositionLimitLeft}" :d="left"/>
+        <path fill="rgba(21,101,192,0.1)" :class="{'please-stop-center': expositionLimit}" :d="center"></path>
+        <path fill="rgba(21,101,192,0.8)" :class="{'please-stop-handle': expositionLimitRight}" :d="right"/>
+      </g>
     </g>
     <line x1="0" :x2="width" :y1="height" :y2="height" stroke="black" opacity="0.3"/>
   </svg>
@@ -56,6 +58,7 @@
     },
     data () {
       return {
+        yIndent: 3,
         handleWidth: 6,
         lastHandle: null,
         HANDLES: {
@@ -137,6 +140,7 @@
     },
     methods: {
       onSwipe (notInteresting, event) {
+        console.log(event, this);
         if (this.isLeftHandle) {
           this.lastHandle = this.HANDLES.LEFT;
           let offset = this.convertCurrentX();
@@ -180,10 +184,10 @@
         return this.average.minTimestamp + (event.layerX + additional) / this.xMultiplier;
       },
       checkForRightEdge (offset) {
-        return (offset + this.exposition) < this.average.maxTimestamp
+        return (offset + this.exposition) < this.average.maxTimestamp + this.handleWidth / this.xMultiplier
       },
       checkForLeftEdge (offset) {
-        return (offset) > this.average.minTimestamp
+        return (offset) > this.average.minTimestamp - this.handleWidth
       },
       isExpositionValid (exposition) {
         this.expositionLimitLeft = false;
