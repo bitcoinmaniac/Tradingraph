@@ -5,8 +5,8 @@
        @mouseup.prevent="_onMixinMouse"
        @mouseleave.prevent="_onMixinMouse">
     <line x1="0" :x2="width" stroke="black" opacity="0.3"/>
-    <g :transform="`translate(${handleWidth}) scale(${(width - 2 * handleWidth) / width})`">
-      <g :transform="`translate(0, ${yIndent}) scale(1, ${(height - 2 * yIndent) / height})`">
+    <g :transform="navigatotScale">
+      <g :transform="navigatorPathScale">
         <path class="candles-path-volume" fill="transparent" stroke="rgba(21,101,192,0.8)" :d="navigatorPath"/>
       </g>
       <g>
@@ -78,6 +78,12 @@
       }
     },
     computed: {
+      navigatotScale () {
+        return `translate(${this.handleWidth}) scale(${(this.width - 2 * this.handleWidth) / this.width})`;
+      },
+      navigatorPathScale () {
+        return `translate(0, ${this.yIndent}) scale(1, ${(this.height - 2 * this.yIndent) / this.height})`;
+      },
       navigatorPath () {
         return this.average.path && this.average.path.join() || '';
       },
