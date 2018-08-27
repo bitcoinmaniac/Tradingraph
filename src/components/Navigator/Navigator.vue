@@ -1,5 +1,5 @@
 <template>
-  <svg :view-box.camel="[0, 0, width, height]"
+  <svg style="width: 100%" :view-box.camel="[0, 0, width, height]"
        @mousedown.prevent="_onMixinMouse"
        @mousemove.prevent="_onMixinMouse"
        @mouseup.prevent="_onMixinMouse"
@@ -25,10 +25,6 @@
     name: 'chart-navigator',
     mixins: [MouseEvents],
     props: {
-      width: {
-        type: Number,
-        required: true
-      },
       height: {
         type: Number,
         required: false,
@@ -70,6 +66,7 @@
           left: 10,
           right: 10
         },
+        width: 0,
         startCenterDiff: 0,
         startExposition: 0,
         expositionLimit: false,
@@ -88,7 +85,7 @@
         return this.average.path && this.average.path.join() || '';
       },
       xMultiplier () {
-        return (this.width) / (this.average.maxTimestamp - this.average.minTimestamp);
+        return this.width / (this.average.maxTimestamp - this.average.minTimestamp);
       },
       leftX () {
         if (this.eventsMouse.scrolling.isScrolling) {
@@ -119,8 +116,8 @@
       },
       isLeftHandle () {
         return this.lastHandle !== this.HANDLES.CENTER && this.lastHandle !== this.HANDLES.RIGHT &&
-          this.eventsMouse.scrolling.layerX - this.leftX >= 0 &&
-          this.eventsMouse.scrolling.layerX - this.leftX <= this.handleWidth ||
+          this.eventsMouse.scrolling.layerX - this.leftX >= -this.handleWidth &&
+          this.eventsMouse.scrolling.layerX - this.leftX <= 0 ||
           this.lastHandle === this.HANDLES.LEFT;
       },
       isRightHandle () {
@@ -144,8 +141,15 @@
         this.expositionLimitLeft = false;
       }
     },
+    created () {
+      window.addEventListener('resize', this.onResize);
+    },
+    mounted () {
+      this.onResize();
+    },
     methods: {
       onSwipe (notInteresting, event) {
+        // console.log(event);
         if (this.isLeftHandle) {
           this.lastHandle = this.HANDLES.LEFT;
           let offset = this.convertCurrentX();
@@ -199,8 +203,14 @@
         this.expositionLimitRight = false;
         this.expositionLimit = !(exposition < (this.maxZoom - this.minZoom));
         return !this.expositionLimit;
+      },
+      onResize () {
+        this.width = this.$el.clientWidth;
       }
     },
+    beforeDestroy () {
+      window.removeEventListener('resize', this._onResize);
+    }
   };
 </script>
 
