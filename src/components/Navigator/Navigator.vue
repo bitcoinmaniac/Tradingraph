@@ -111,26 +111,26 @@
         return `M${this.leftX} 0, L${this.rightX} 0, L${this.rightX} ${this.height}, L${this.leftX} ${this.height}`;
       },
       right () {
-        return `M${this.rightX - this.handleWidth} 0, L${this.rightX} 0,
-                L${this.rightX} ${this.height}, L${this.rightX - this.handleWidth} ${this.height}`;
+        return `M${this.rightX} 0, L${this.rightX + this.handleWidth} 0,
+                L${this.rightX + this.handleWidth} ${this.height}, L${this.rightX} ${this.height}`;
       },
       isLeftHandle () {
         return this.lastHandle !== this.HANDLES.CENTER && this.lastHandle !== this.HANDLES.RIGHT &&
-          this.eventsMouse.scrolling.layerX - this.leftX >= -this.handleWidth &&
-          this.eventsMouse.scrolling.layerX - this.leftX <= 0 ||
+          this.eventsMouse.scrolling.layerX >= this.leftX &&
+          this.eventsMouse.scrolling.layerX <= this.leftX + this.handleWidth ||
           this.lastHandle === this.HANDLES.LEFT;
-      },
-      isRightHandle () {
-        return this.lastHandle !== this.HANDLES.LEFT && this.lastHandle !== this.HANDLES.CENTER &&
-          this.eventsMouse.scrolling.layerX - this.rightX >= 0 &&
-          this.eventsMouse.scrolling.layerX - this.rightX <= this.handleWidth ||
-          this.lastHandle === this.HANDLES.RIGHT
       },
       isCenterHandle () {
         return this.lastHandle !== this.HANDLES.LEFT && this.lastHandle !== this.HANDLES.RIGHT &&
-          this.eventsMouse.scrolling.layerX - this.leftX >= this.handleWidth &&
-          this.eventsMouse.scrolling.layerX - this.rightX <= this.handleWidth ||
+          this.eventsMouse.scrolling.layerX >= this.leftX + this.handleWidth &&
+          this.eventsMouse.scrolling.layerX <= this.rightX||
           this.lastHandle === this.HANDLES.CENTER;
+      },
+      isRightHandle () {
+        return this.lastHandle !== this.HANDLES.LEFT && this.lastHandle !== this.HANDLES.CENTER &&
+          this.eventsMouse.scrolling.layerX >= this.rightX &&
+          this.eventsMouse.scrolling.layerX <= this.rightX + this.handleWidth ||
+          this.lastHandle === this.HANDLES.RIGHT
       }
     },
     watch: {
