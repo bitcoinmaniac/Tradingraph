@@ -1,9 +1,10 @@
 <template>
   <svg style="width: 100%" :view-box.camel="[0, 0, width, height]"
        @mousedown.prevent="_onMixinMouse"
-       @mousemove.prevent="_onMixinMouse"
+       @mousemove.prevent="moveHandler"
        @mouseup.prevent="_onMixinMouse"
-       @mouseleave.prevent="_onMixinMouse">
+       @mouseleave.prevent="_onMixinMouse"
+       :style="grabStyle">
     <line x1="0" :x2="width" stroke="black" opacity="0.3"/>
     <g :transform="navigatotScale">
       <g :transform="navigatorPathScale">
@@ -71,7 +72,8 @@
         startExposition: 0,
         expositionLimit: false,
         expositionLimitLeft: false,
-        expositionLimitRight: false
+        expositionLimitRight: false,
+        grabStyle: 'cursor: default'
       }
     },
     computed: {
@@ -116,21 +118,15 @@
       },
       isLeftHandle () {
         return this.lastHandle !== this.HANDLES.CENTER && this.lastHandle !== this.HANDLES.RIGHT &&
-          this.eventsMouse.scrolling.layerX >= this.leftX &&
-          this.eventsMouse.scrolling.layerX <= this.leftX + this.handleWidth ||
-          this.lastHandle === this.HANDLES.LEFT;
+          this.isLeft(this.eventsMouse.scrolling.layerX) || this.lastHandle === this.HANDLES.LEFT;
       },
       isCenterHandle () {
         return this.lastHandle !== this.HANDLES.LEFT && this.lastHandle !== this.HANDLES.RIGHT &&
-          this.eventsMouse.scrolling.layerX >= this.leftX + this.handleWidth &&
-          this.eventsMouse.scrolling.layerX <= this.rightX||
-          this.lastHandle === this.HANDLES.CENTER;
+          this.isCenter(this.eventsMouse.scrolling.layerX) || this.lastHandle === this.HANDLES.CENTER;
       },
       isRightHandle () {
         return this.lastHandle !== this.HANDLES.LEFT && this.lastHandle !== this.HANDLES.CENTER &&
-          this.eventsMouse.scrolling.layerX >= this.rightX &&
-          this.eventsMouse.scrolling.layerX <= this.rightX + this.handleWidth ||
-          this.lastHandle === this.HANDLES.RIGHT
+          this.isRight(this.eventsMouse.scrolling.layerX) || this.lastHandle === this.HANDLES.RIGHT
       }
     },
     watch: {
@@ -139,6 +135,10 @@
         this.expositionLimit = false;
         this.expositionLimitRight = false;
         this.expositionLimitLeft = false;
+        this.computeGrabStyle(this.eventsMouse.scrolling.layerX);
+      },
+      'grabStyle' () {
+        console.log(this.grabStyle);
       }
     },
     created () {
@@ -148,9 +148,31 @@
       this.onResize();
     },
     methods: {
+      isLeft (x) {
+        return x >= this.leftX - this.handleWidth && x <= this.leftX;
+      },
+      isCenter (x) {
+        return x >= this.leftX && x <= this.rightX;
+      },
+      isRight (x) {
+        return x >= this.rightX && x <= this.rightX + this.handleWidth;
+      },
+      computeGrabStyle (x) {
+        if (this.isCenter(x)) {
+          this.grabStyle = 'cursor: grab';
+        } else if (this.isRight(x) || this.isLeft(x)) {
+          this.grabStyle = 'cursor: ew-resize';
+        } else {
+          this.grabStyle = 'cursor: default';
+        }
+      },
+      moveHandler (event) {
+        this.computeGrabStyle(event.layerX);
+        this._onMixinMouse(event);
+      },
       onSwipe (notInteresting, event) {
-        // console.log(event);
         if (this.isLeftHandle) {
+          this.grabStyle = 'cursor: ew-resize';
           this.lastHandle = this.HANDLES.LEFT;
           let offset = this.convertCurrentX();
           let exposition = (this.rightX - event.layerX) / this.xMultiplier;
@@ -162,6 +184,7 @@
             this.expositionLimitLeft = true;
           }
         } else if (this.isRightHandle) {
+          this.grabStyle = 'cursor: ew-resize';
           this.lastHandle = this.HANDLES.RIGHT;
           let offset = this.average.minTimestamp + this.leftX / this.xMultiplier;
           let exposition = this.convertCurrentX() - offset;
@@ -173,6 +196,7 @@
             this.expositionLimitRight = true;
           }
         } else if (this.isCenterHandle) {
+          this.grabStyle = 'cursor: grabbing';
           if (!this.lastHandle) {
             this.startCenterDiff = this.leftX - event.layerX;
             this.startExposition = this.fixed.right - this.fixed.left;
@@ -185,9 +209,9 @@
             this.$emit('handler', {offset}, 'center');
           }
         } else {
+          this.grabStyle = 'cursor: default';
           this.lastHandle = null;
         }
-        this.eventsMouse.scrolling.layerX = event.layerX;
       },
       convertCurrentX (additional = 0) {
         return this.average.minTimestamp + (event.layerX + additional) / this.xMultiplier;
@@ -205,6 +229,7 @@
         return !this.expositionLimit;
       },
       onResize () {
+        console.log('resize');
         this.width = this.$el.clientWidth;
       }
     },
