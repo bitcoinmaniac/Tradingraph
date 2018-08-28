@@ -217,7 +217,7 @@
         return this.average.minTimestamp + (event.layerX + additional) / this.xMultiplier;
       },
       checkForRightEdge (offset, exposition = this.exposition) {
-        return (offset + exposition) < this.average.maxTimestamp + this.handleWidth / this.xMultiplier
+        return (offset + exposition) < this.average.maxTimestamp
       },
       checkForLeftEdge (offset) {
         return (offset) > this.average.minTimestamp - this.handleWidth
