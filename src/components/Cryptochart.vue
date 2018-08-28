@@ -140,7 +140,7 @@
       findHoverCandle() {
         if (this.candles) {
           this.candles.candles.map((candle) => {
-            if ((this.interactive.cursorX >= candle.x) && (this.interactive.cursorX <= candle.x + this.candles.width - this.candles.width * 0.25)) {
+            if ((this.interactive.cursorX >= candle.x - this.candles.width * 0.25) && (this.interactive.cursorX <= candle.x + this.candles.width * 0.25)) {
               this.interactive.hoverCandle = candle;
             }
           });

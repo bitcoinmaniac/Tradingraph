@@ -19,6 +19,7 @@ export default {
           if (this.eventsMouse.scrolling.isScrolling) {
             this.eventsMouse.scrolling.power = (this.eventsMouse.scrolling.clientX - event.clientX) * this.koofScreenX;
             this.eventsMouse.scrolling.clientX = event.clientX;
+            this.eventsMouse.scrolling.layerX = event.layerX;
             if ('onSwipe' in this) {
               this.onSwipe({
                 offsetX : this.eventsMouse.scrolling.power / this.dpi,

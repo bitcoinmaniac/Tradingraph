@@ -84,16 +84,16 @@ export default {
       return ('clientHeight' in this) && (+this.clientHeight) !== 0 ? this.height / this.clientHeight : 1;
     },
     _onResize () {
+      this.clientWidth = this.$el.clientWidth;
+      this.clientHeight = this.$el.clientHeight;
       if (this.initialSize.width > 0) {
         this.width = this.initialSize.width;
       } else {
-        this.clientWidth = this.$el.clientWidth;
         this.width = this.clientWidth;
       }
       if (this.initialSize.height > 0) {
         this.height = this.initialSize.height;
       } else {
-        this.clientHeight = this.$el.clientHeight;
         this.height = this.clientHeight;
       }
       this.chart.width = this.width - this.chart.offset.left - this.koofScreenX * 2;
