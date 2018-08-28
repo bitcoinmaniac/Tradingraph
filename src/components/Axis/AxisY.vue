@@ -34,7 +34,7 @@
         if (!this.candles) {
           return [];
         }
-        let height = this.chartHeight - this.chartOffset * 2;
+        let height = this.chartHeight;
         let stepY = height / 8;
         let stepPrice = (this.candles.high - this.candles.low) / 8;
         let result = [];

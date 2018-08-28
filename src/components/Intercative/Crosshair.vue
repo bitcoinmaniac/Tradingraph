@@ -1,11 +1,11 @@
 <template>
   <g v-if="interactive.hoverCandle" :transform="`translate(0, ${chartOffset})`">
     <path class="cross" :d="crossPath"/>
-    <g class="price-label" :transform="`translate(${chartWidth}, ${interactive.cursorY - this.chartOffset})`">
+    <g class="price-label" :transform="`translate(${chartWidth}, ${realY})`">
       <path d="M-70 -10 L0 -10 L0 0 L0 10 L-70 10"/>
       <text x="-6" :y="4" :font-size="10">{{currentPrice | price}}</text>
     </g>
-    <g class="moment-label" :transform="`translate(${interactive.cursorX}, ${chartHeight - chartOffset * 2})`">
+    <g class="moment-label" :transform="`translate(${interactive.cursorX}, ${chartHeight})`">
       <path d="M-50 0 L50 0 L50 24 L-50 24"/>
       <text :y="15" :font-size="10">{{interactive.hoverCandle.timestamp | moment}}
       </text>
@@ -39,18 +39,18 @@
       }
     },
     computed: {
+      realY () {
+        return (this.interactive.cursorY + this.chartOffset);
+      },
       crossPath() {
         if (!this.interactive.hoverCandle) {
           return '';
         }
         let x = this.interactive.hoverCandle.x;
-        return `M${x} 0 L${x} ${this.chartHeight - this.chartOffset * 2} ` +
-          `M0 ${this.interactive.cursorY - this.chartOffset} L${this.chartWidth} ${this.interactive.cursorY - this.chartOffset} `
-          ;
+        return `M${x} 0 L${x} ${this.chartHeight} M0 ${this.realY} L${this.chartWidth} ${this.realY} `;
       },
       currentPrice() {
-        let realHeight = this.chartHeight - this.chartOffset * 2;
-        return this.candles.low + (this.candles.high - this.candles.low)  * (realHeight - this.interactive.cursorY + this.chartOffset) / realHeight;
+        return this.candles.low + (this.candles.high - this.candles.low) * (this.chartHeight - this.realY) / this.chartHeight;
       }
     }
   };

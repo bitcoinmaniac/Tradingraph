@@ -136,9 +136,6 @@
         this.expositionLimitRight = false;
         this.expositionLimitLeft = false;
         this.computeGrabStyle(this.eventsMouse.scrolling.layerX);
-      },
-      'grabStyle' () {
-        console.log(this.grabStyle);
       }
     },
     created () {

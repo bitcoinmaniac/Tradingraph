@@ -13,7 +13,7 @@ export default {
           if('onHover' in this) {
             this.onHover({
               x : event.offsetX * this.koofScreenX - this.chart.offset.left,
-              y : event.offsetY * this.koofScreenY - this.chart.offset.top
+              y : event.offsetY * this.koofScreenY - this.offsets.chartTop - this.offsets.chartBottom
             });
           }
           if (this.eventsMouse.scrolling.isScrolling) {

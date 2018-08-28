@@ -2,7 +2,8 @@ export default {
   data () {
     return {
       offsets: {
-        chartOffset: 20
+        chartTop: 20,
+        chartBottom: 20
       },
       sizes: {
         navigator: {

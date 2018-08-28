@@ -10,6 +10,7 @@
          @touchmove.prevent="_onMixinTouch"
          @touchend.prevent="_onMixinTouch"
          @touchcancel.prevent="_onMixinTouch"
+         ref="chart"
     >
       <!--main chart group-->
       <g>
@@ -22,7 +23,7 @@
             Vol: {{interactive.hoverCandle.volume.toFixed(6)}}
           </text>
         </g>
-        <g v-if="candles" :transform="`translate(0, ${this.offsets.chartOffset})`">
+        <g v-if="candles" :transform="`translate(0, ${this.offsets.chartTop})`">
           <path class="candles-path-positive" :d="positiveCandlesPath"/>
           <path class="candles-path-negative" :d="negativeCandlesPath"/>
           <path class="candles-path-volume" :d="volumeCandlesPath"/>
@@ -35,11 +36,11 @@
                   :d="candles.candlesPositivePath[interactive.hoverCandle.candlePathIndex]"/>
           </g>
         </g>
-        <axis-y :candles="candles" :chart-height="chart.height" :chart-width="chart.width" :chart-offset="offsets.chartOffset"/>
+        <axis-y :candles="candles" :chart-height="chart.height" :chart-width="chart.width" :chart-offset="offsets.chartTop"/>
         <axis-x :chart-height="chart.height" :chart-width="chart.width" :time-parts="zoom.time_parts" :exposition="exposition"
-                :offset="interval.offset" :dpi="dpi" :candleWidth="candles && candles.width || 3" :chart-offset="offsets.chartOffset"/>
-        <crosshair :chart-height="chart.height" :chart-width="chart.width" :chart-offset="offsets.chartOffset"
-                   :candles="candles" :interactive="interactive" />
+                :offset="interval.offset" :dpi="dpi" :candleWidth="candles && candles.width || 3" :chart-offset="offsets.chartBottom"/>
+        <crosshair :chart-height="chart.height" :chart-width="chart.width"
+                   :chart-offset="offsets.chartTop" :candles="candles" :interactive="interactive" />
       </g>
     </svg>
     <navigator :width="chart.width" :average="average" :offset="interval.offset" :exposition="exposition"

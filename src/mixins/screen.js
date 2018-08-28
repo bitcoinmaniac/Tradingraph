@@ -40,7 +40,7 @@ export default {
     },
     // Coefficient of transformations native pixels to internal for Y
     koofScreenY () {
-      return this._calcKoofScreenY();
+      return ('clientHeight' in this) && (+this.clientHeight) !== 0 ? this.height / this.clientHeight : 1;
     },
     // Base for font height
     fontHeight () {
@@ -80,12 +80,13 @@ export default {
     this._onResize();
   },
   methods: {
-    _calcKoofScreenY() {
-      return ('clientHeight' in this) && (+this.clientHeight) !== 0 ? this.height / this.clientHeight : 1;
-    },
     _onResize () {
-      this.clientWidth = this.$el.clientWidth;
-      this.clientHeight = this.$el.clientHeight;
+      if (this.width) {
+        this.clientWidth = this.$refs.chart.clientWidth;
+      }
+      if (this.height) {
+        this.clientHeight = this.$refs.chart.clientHeight;
+      }
       if (this.initialSize.width > 0) {
         this.width = this.initialSize.width;
       } else {
@@ -97,7 +98,13 @@ export default {
         this.height = this.clientHeight;
       }
       this.chart.width = this.width - this.chart.offset.left - this.koofScreenX * 2;
-      this.chart.height = this.height - this.chart.offset.top - this.fontSizeAxisX * 1.5;
+      this.chart.height = this.height - this.offsets.chartTop - this.offsets.chartBottom;
+      if (!this.clientWidth && !this.clientHeight) {
+        this.$nextTick(() => {
+          this.clientWidth = this.$refs.chart.clientWidth;
+          this.clientHeight = this.$refs.chart.clientHeight;
+        });
+      }
       if ('onRedraw' in this) {
         this.onRedraw();
       }

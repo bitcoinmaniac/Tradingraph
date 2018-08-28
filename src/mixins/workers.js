@@ -49,7 +49,7 @@ export default {
         offset: this.interval.offset,
         exposition: this.exposition,
         viewWidth: this.chart.width,
-        viewHeight: this.chart.height - this.offsets.chartOffset * 2
+        viewHeight: this.chart.height
       });
     },
     _onCandlesWorkerMessage (message) {
