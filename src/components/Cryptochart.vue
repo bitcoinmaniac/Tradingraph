@@ -1,7 +1,7 @@
 <template>
   <div>
     <svg class="crypto-chart"
-         :view-box.camel="[0, 0, width, height]"
+         :view-box.camel="[0, 0, width ? width : 0, height ? height : 0]"
          @mousedown.prevent="_onMixinMouse"
          @mousemove.prevent="_onMixinMouse"
          @mouseup.prevent="_onMixinMouse"
@@ -122,7 +122,6 @@
       fontSizeAxisY() {
         return this.fontHeight < (this.chart.offset.left / 6) ? this.chart.offset.left / 6 : this.fontHeight;
       },
-
       fontSizeAxisX() {
         return this.fontHeight > (this.clientWidth / 16) ? this.clientWidth / 16 : this.fontHeight;
       }

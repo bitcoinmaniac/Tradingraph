@@ -15,8 +15,12 @@ class CandlesWorker {
       empty: false,
       noMoreData: false,
       dataRequestPending: false,
-      candleWidths: []
+      candleWidths: [],
+      firstTimestamp: 0,
+      lastTimestamp: 0,
+      defaultExposition: 86400 * 30
     }
+    this.requestParams();
   }
   /**
    * @description Send message to parrent
@@ -30,6 +34,10 @@ class CandlesWorker {
     switch (message.data.task) {
       case 'SET-PARAMS': {
         this.setParams(message.data.params);
+        console.log(this.params.lastTimestamp > 0, !this.params.dataRequestPending, !this.data.raw.length);
+        if (this.params.lastTimestamp > 0 && !this.params.dataRequestPending && !this.data.raw.length) {
+          this.initialLoading();
+        }
         break;
       }
       case 'APPEND': {
@@ -45,6 +53,12 @@ class CandlesWorker {
         this.renderCandles(message.data.offset, message.data.exposition, message.data.viewWidth, message.data.viewHeight);
         break;
       }
+      case 'RELOAD': {
+        this.resetData();
+        // this.params.dataRequestPending = true;
+        this.requestParams();
+        break;
+      }
       default: break;
     }
   }
@@ -54,6 +68,8 @@ class CandlesWorker {
     this.data.start = null;
     this.data.width = null;
     this.data.tree = [];
+    this.averageData = [];
+    this.params.dataRequestPending = false;
   }
   /**
    * @description Apply params for render
@@ -65,6 +81,25 @@ class CandlesWorker {
       this.params[param] = freshParams[param];
     });
     this.data.treeReady = false;
+  }
+  requestParams () {
+    this.sendMessage('NEED_PARAMS', {
+      inner: {
+        candleWidths: null
+      },
+      outer: {
+        firstTimestamp: null,
+        lastTimestamp: null
+      }
+    });
+  }
+  initialLoading () {
+    console.log('initial');
+    let exposition = this.params.defaultExposition;
+    let offset = this.params.lastTimestamp - exposition;
+    offset = offset > this.params.firstTimestamp ? offset : this.params.firstTimestamp;
+    this.params.dataRequestPending = true;
+    this.sendMessage('NEED_DATA', {offset, exposition});
   }
   /**
    * @description Append part the chart data
@@ -98,7 +133,7 @@ class CandlesWorker {
     // } else if (!this.params.empty && !this.params.noMoreData) {
     //   this.resetData();
     // }
-    this.sendMessage('APPENDED');
+    // this.sendMessage('APPENDED');
   }
   /**
    * @description Make specific tree by raw data
@@ -178,7 +213,7 @@ class CandlesWorker {
     if (!this.data.treeReady) {
       this.makeTree();
     }
-    // console.log('RENDER', this.data.start > 0, this.data.start, offset);
+    console.log('RENDER', this.data.start > 0, this.data.start, offset);
     if (this.data.start > 0 && this.data.start < offset) {
       let theCase = this.findCandleWidthForUse(exposition, viewWidth);
       let theData = this.data.tree[theCase];
@@ -257,22 +292,24 @@ class CandlesWorker {
     }
   }
   renderAverage (offset, exposition, viewWidth, viewHeight) {
-    let dataLength = this.averageData.length;
-    let step = (viewWidth) / this.averageData.length;
-    let result = {
-      minTimestamp: this.averageData[0].date,
-      maxTimestamp: this.averageData[dataLength - 1].date,
-      path: []
-    };
-    let sortedByAverage = this.averageData.slice().sort((a, b) => {return a.average - b.average;});
-    let highest = sortedByAverage[dataLength - 1].average;
-    let lowest = sortedByAverage[0].average;
-    let yMultiplyer = 50 / (highest - lowest);
-    result.path.push(`M6 ${yMultiplyer * (highest - this.averageData[0].average)}`);
-    for (let i = 1; i < dataLength; i++) {
-      result.path.push(`L${step * i} ${yMultiplyer * (highest - this.averageData[i].average)}`);
+    if (this.averageData.length) {
+      let dataLength = this.averageData.length;
+      let step = (viewWidth) / this.averageData.length;
+      let result = {
+        minTimestamp: this.averageData[0].date,
+        maxTimestamp: this.averageData[dataLength - 1].date,
+        path: []
+      };
+      let sortedByAverage = this.averageData.slice().sort((a, b) => {return a.average - b.average;});
+      let highest = sortedByAverage[dataLength - 1].average;
+      let lowest = sortedByAverage[0].average;
+      let yMultiplyer = 50 / (highest - lowest);
+      result.path.push(`M6 ${yMultiplyer * (highest - this.averageData[0].average)}`);
+      for (let i = 1; i < dataLength; i++) {
+        result.path.push(`L${step * i} ${yMultiplyer * (highest - this.averageData[i].average)}`);
+      }
+      this.sendMessage('RENDERED_AVERAGE', result);
     }
-    this.sendMessage('RENDERED_AVERAGE', result);
   }
 }
 

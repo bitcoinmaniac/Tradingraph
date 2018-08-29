@@ -40,6 +40,16 @@ export default {
       type: Array,
       required: false,
       default: () => [900, 1800, 3600, 14400, 28800, 43200, 86400, 604800, 2592000, 31536000]
+    },
+    reloadCounter: {
+      type: Number,
+      required: false,
+      default: 0
+    },
+    params: {
+      type: Object,
+      required: true,
+      default: {}
     }
   },
   watch: {
