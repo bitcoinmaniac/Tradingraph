@@ -71,6 +71,12 @@ export default {
     },
     'interval.offset' () {
       this.onRedraw();
+    },
+    'initialSize.height' () {
+      this._onResize();
+    },
+    'initialSize.width' () {
+      this._onResize();
     }
   },
   created () {
@@ -93,7 +99,7 @@ export default {
         this.width = this.clientWidth;
       }
       if (this.initialSize.height > 0) {
-        this.height = this.initialSize.height;
+        this.height = this.initialSize.height - this.sizes.navigator.height - this.offsets.navigatorOffset;
       } else {
         this.height = this.clientHeight;
       }

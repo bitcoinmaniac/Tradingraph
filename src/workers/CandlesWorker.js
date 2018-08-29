@@ -288,7 +288,7 @@ class CandlesWorker {
       this.sendMessage('RENDERED', result);
     } else if (!this.params.dataRequestPending) {
       this.params.dataRequestPending = true;
-      this.sendMessage('NEED_DATA', {offset, exposition});
+      this.sendMessage('NEED_DATA', {offset: offset, exposition: this.params.defaultExposition});
     }
   }
   renderAverage (offset, exposition, viewWidth, viewHeight) {

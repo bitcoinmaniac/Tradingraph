@@ -4,6 +4,10 @@
        @mousemove.prevent="moveHandler"
        @mouseup.prevent="_onMixinMouse"
        @mouseleave.prevent="_onMixinMouse"
+       @touchstart.prevent="_onMixinTouch"
+       @touchmove.prevent="_onMixinTouch"
+       @touchend.prevent="_onMixinTouch"
+       @touchcancel.prevent="_onMixinTouch"
        :style="grabStyle">
     <line x1="0" :x2="width" stroke="black" opacity="0.3"/>
     <g :transform="navigatotScale">
@@ -22,9 +26,10 @@
 
 <script>
   import MouseEvents from '../../mixins/events-mouse';
+  import TouchEvents from '../../mixins/events-touch';
   export default {
     name: 'chart-navigator',
-    mixins: [MouseEvents],
+    mixins: [MouseEvents, TouchEvents],
     props: {
       height: {
         type: Number,

@@ -15,7 +15,7 @@
       <!--main chart group-->
       <g>
         <g v-if="interactive.hoverCandle">
-          <text :y="15" :x="8" style="text-anchor: start;" :font-size="12">
+          <text :y="15" :x="8" style="text-anchor: start;" :font-size="12 * (koofScreenY)">
             O: {{interactive.hoverCandle.open.toFixed(6)}}
             H: {{interactive.hoverCandle.high.toFixed(6)}}
             L: {{interactive.hoverCandle.low.toFixed(6)}}
@@ -131,7 +131,11 @@
         for (let worker in this.workers)
           this.workers[worker].redraw();
       },
-
+      onClick (params) {
+        this.interactive.cursorX = params.x;
+        this.interactive.cursorY = params.y;
+        this.findHoverCandle();
+      },
       onHover(params) {
         this.interactive.cursorX = params.x;
         this.interactive.cursorY = params.y;

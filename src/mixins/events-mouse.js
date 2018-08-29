@@ -8,6 +8,12 @@ export default {
           this.eventsMouse.scrolling.layerX = event.layerX;
           this.eventsMouse.scrolling.layerY = event.layerY;
           this.eventsMouse.scrolling.isScrolling = true;
+          if ('onClick' in this) {
+            this.onClick({
+              x : event.offsetX * this.koofScreenX - this.chart.offset.left,
+              y : event.offsetY * this.koofScreenY - this.offsets.chartTop - this.offsets.chartBottom
+            });
+          }
           break;
         case 'mousemove':
           if('onHover' in this) {
