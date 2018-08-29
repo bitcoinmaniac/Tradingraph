@@ -120,8 +120,8 @@ export default {
 
       if (this.candleWidths && this.candleWidths.length) {
         let maxCandleWidth = this.candleWidths[this.candleWidths.length - 1];
-        this.minZoom = params.interval.width / (maxCandleWidth * this.chart.width / 3);
-        result = result < this.minZoom ? this.minZoom : result;
+        let calculatedMinZoom = params.interval.width / (maxCandleWidth * this.chart.width / 3);
+        result = result < calculatedMinZoom ? calculatedMinZoom : result;
       }
       return result > this.maxZoom ? this.maxZoom : result;
     },

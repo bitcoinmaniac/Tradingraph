@@ -20,6 +20,7 @@ class CandlesWorker {
       lastTimestamp: 0,
       defaultExposition: 86400 * 30
     }
+    console.log('constructor');
     this.requestParams();
   }
   /**
@@ -54,6 +55,7 @@ class CandlesWorker {
         break;
       }
       case 'RELOAD': {
+        console.log('calls reload');
         this.resetData();
         // this.params.dataRequestPending = true;
         this.requestParams();
@@ -121,7 +123,7 @@ class CandlesWorker {
     this.sendMessage('APPENDED');
   }
   appendAverage (data) {
-    console.log('APPEND AVERAGE', data);
+    console.log('APPEND AVERAGE');
     this.averageData.splice(0);
     this.averageData = data.slice();
     // this.params.dataRequestPending = false;
@@ -174,7 +176,7 @@ class CandlesWorker {
           this.data.tree[case_].push(lastCandle);
         }
       });
-      console.log(this.data.tree);
+      // console.log(this.data.tree);
       this.data.treeReady = true;
     }
   }
@@ -213,7 +215,7 @@ class CandlesWorker {
     if (!this.data.treeReady) {
       this.makeTree();
     }
-    console.log('RENDER', this.data.start > 0, this.data.start, offset);
+    // console.log('RENDER', this.data.start > 0, this.data.start, offset);
     if (this.data.start > 0 && this.data.start < offset) {
       let theCase = this.findCandleWidthForUse(exposition, viewWidth);
       let theData = this.data.tree[theCase];
