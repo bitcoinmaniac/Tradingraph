@@ -50,8 +50,11 @@ class CandlesWorker {
         break;
       }
       case 'RENDER': {
-        this.renderAverage(message.data.offset, message.data.exposition, message.data.viewWidth, message.data.viewHeight)
         this.renderCandles(message.data.offset, message.data.exposition, message.data.viewWidth, message.data.viewHeight);
+        break;
+      }
+      case 'RENDER_AVERAGE': {
+        this.renderAverage(message.data.offset, message.data.exposition, message.data.viewWidth, message.data.viewHeight);
         break;
       }
       case 'RELOAD': {
@@ -135,7 +138,7 @@ class CandlesWorker {
     // } else if (!this.params.empty && !this.params.noMoreData) {
     //   this.resetData();
     // }
-    // this.sendMessage('APPENDED');
+    this.sendMessage('APPENDED_AVERAGE');
   }
   /**
    * @description Make specific tree by raw data
@@ -295,6 +298,7 @@ class CandlesWorker {
   }
   renderAverage (offset, exposition, viewWidth, viewHeight) {
     if (this.averageData.length) {
+      console.log(viewWidth);
       let dataLength = this.averageData.length;
       let step = (viewWidth) / this.averageData.length;
       let result = {
@@ -305,7 +309,7 @@ class CandlesWorker {
       let sortedByAverage = this.averageData.slice().sort((a, b) => {return a.average - b.average;});
       let highest = sortedByAverage[dataLength - 1].average;
       let lowest = sortedByAverage[0].average;
-      let yMultiplyer = 50 / (highest - lowest);
+      let yMultiplyer = viewHeight / (highest - lowest);
       result.path.push(`M6 ${yMultiplyer * (highest - this.averageData[0].average)}`);
       for (let i = 1; i < dataLength; i++) {
         result.path.push(`L${step * i} ${yMultiplyer * (highest - this.averageData[i].average)}`);

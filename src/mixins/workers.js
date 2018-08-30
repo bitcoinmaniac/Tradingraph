@@ -63,6 +63,16 @@ export default {
           this._remakeCandles();
           break;
         }
+        case 'APPENDED_AVERAGE' : {
+          this.workers.candlesWorker.postMessage({
+            task: 'RENDER_AVERAGE',
+            offset: this.interval.offset,
+            exposition: this.exposition,
+            viewWidth: this.clientWidth,
+            viewHeight: this.sizes.navigator.height
+          });
+          break;
+        }
         case 'NEED_DATA' : {
           this.$emit('requestData', message.data.body);
           break;

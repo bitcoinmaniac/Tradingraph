@@ -151,13 +151,13 @@
     },
     methods: {
       isLeft (x) {
-        return x >= this.leftX - this.handleWidth && x <= this.leftX;
+        return x >= this.leftX - 2 * this.handleWidth && x <= this.leftX - this.handleWidth;
       },
       isCenter (x) {
-        return x >= this.leftX && x <= this.rightX;
+        return x >= this.leftX - this.handleWidth && x <= this.rightX - this.handleWidth;
       },
       isRight (x) {
-        return x >= this.rightX && x <= this.rightX + this.handleWidth;
+        return x >= this.rightX - this.handleWidth && x <= this.rightX;
       },
       computeGrabStyle (x) {
         if (this.isCenter(x)) {
