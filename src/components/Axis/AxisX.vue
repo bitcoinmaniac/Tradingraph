@@ -66,6 +66,7 @@
         let result = [];
 
         this.timeParts.map((candidate) => {
+          debugger;
           let candidatePartsNumber = this.exposition / (candidate * 2);
 
           if (
@@ -79,6 +80,10 @@
 
         if (!timePart) {
           timePart = this.timeParts[this.timeParts.length - 1] || 1;
+          let numOfPoints = this.exposition / timePart;
+          if (numOfPoints > 8) {
+            timePart = Math.ceil((this.exposition / 8) / timePart) * timePart;
+          }
         }
 
         for (

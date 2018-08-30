@@ -53,13 +53,18 @@ export default {
       return this.zoom.time_parts[0];
     },
     minExposition () {
-      return this.minPart * 3
+      return this.minPart * 10 > 86400 ? this.minPart * 10 : 86400;
     },
     maxExposition () {
-      return this.maxPart * this.zoom.time_parts.length
+      return this.maxPart * 100
     },
     minZoom () {
-      return this.interval.width / (this.maxExposition);
+      let minZoom = this.interval.width / (this.maxExposition);
+      if (this.availableCandleWidths.length) {
+        let maxCandleWidth = this.availableCandleWidths[this.availableCandleWidths.length - 1];
+        minZoom = this.interval.width / (maxCandleWidth * this.chart.width / 3);
+      }
+      return minZoom;
     },
     maxZoom () {
       return this.interval.width / (this.minExposition)
@@ -117,12 +122,6 @@ export default {
     },
     _rebaseZoomByParams (params, zoom) {
       let result = zoom < this.minZoom ? this.minZoom : zoom;
-
-      if (this.candleWidths && this.candleWidths.length) {
-        let maxCandleWidth = this.candleWidths[this.candleWidths.length - 1];
-        let calculatedMinZoom = params.interval.width / (maxCandleWidth * this.chart.width / 3);
-        result = result < calculatedMinZoom ? calculatedMinZoom : result;
-      }
       return result > this.maxZoom ? this.maxZoom : result;
     },
     rebaseZoom (zoom) {
