@@ -6,7 +6,7 @@ export default {
   methods: {
     _onWhell(event) {
       let e = window.event || event;
-      if (e.path.indexOf(this.$el) < 0) {
+      if (e.path && e.path.indexOf(this.$el) < 0) {
         return;
       }
       let targetMoment = this.interval.offset + this.exposition * (event.layerX / this.chart.width);
