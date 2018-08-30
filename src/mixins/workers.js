@@ -35,6 +35,14 @@ export default {
     },
     reloadCounter () {
       this.workers.candlesWorker.postMessage({task: 'RELOAD'});
+    },
+    isEmpty () {
+      this.workers.candlesWorker.postMessage({
+        task: 'SET-PARAMS',
+        params: {
+          empty: this.isEmpty
+        }
+      });
     }
   },
   methods: {

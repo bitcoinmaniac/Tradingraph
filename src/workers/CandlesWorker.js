@@ -35,7 +35,6 @@ class CandlesWorker {
     switch (message.data.task) {
       case 'SET-PARAMS': {
         this.setParams(message.data.params);
-        console.log(this.params.lastTimestamp > 0, !this.params.dataRequestPending, !this.data.raw.length);
         if (this.params.lastTimestamp > 0 && !this.params.dataRequestPending && !this.data.raw.length) {
           this.initialLoading();
         }
@@ -58,7 +57,8 @@ class CandlesWorker {
         break;
       }
       case 'RELOAD': {
-        console.log('calls reload');
+        this.params.empty = false;
+        this.params.noMoreData = false;
         this.resetData();
         // this.params.dataRequestPending = true;
         this.requestParams();
@@ -99,7 +99,6 @@ class CandlesWorker {
     });
   }
   initialLoading () {
-    console.log('initial');
     let exposition = this.params.defaultExposition;
     let offset = this.params.lastTimestamp - exposition;
     offset = offset > this.params.firstTimestamp ? offset : this.params.firstTimestamp;
@@ -113,7 +112,7 @@ class CandlesWorker {
    * @return none
    */
   append (data) {
-    console.log('APPEND');
+    // console.log('APPEND');
     this.params.dataRequestPending = false;
     if (data.length > 0) {
       this.data.treeReady = false;
@@ -126,18 +125,9 @@ class CandlesWorker {
     this.sendMessage('APPENDED');
   }
   appendAverage (data) {
-    console.log('APPEND AVERAGE');
+    // console.log('APPEND AVERAGE');
     this.averageData.splice(0);
     this.averageData = data.slice();
-    // this.params.dataRequestPending = false;
-    // if (data.length > 0) {
-    //   this.data.treeReady = false;
-    //   this.data.raw.splice(0);
-    //   this.data.raw = data.slice();
-    //   this.data.raw.sort((a, b) => { return a.date - b.date;});
-    // } else if (!this.params.empty && !this.params.noMoreData) {
-    //   this.resetData();
-    // }
     this.sendMessage('APPENDED_AVERAGE');
   }
   /**
@@ -218,87 +208,86 @@ class CandlesWorker {
     if (!this.data.treeReady) {
       this.makeTree();
     }
+    let result = {
+      low: null,
+      high: null,
+      maxVolume: null,
+      width: null,
+      candles: [],
+      candlesPositivePath: [],
+      candlesNegativePath: [],
+      volumePath: []
+    };
     // console.log('RENDER', this.data.start > 0, this.data.start, offset);
+    let theCase = this.findCandleWidthForUse(exposition, viewWidth);
+    let theData = this.data.tree[theCase];
+    let koofX = viewWidth / exposition;
+    result.width = theCase * koofX;
+    let start = 0;
+    let stop = theData.length;
+    if (offset > this.data.start) {
+      start = -Math.floor((offset - this.data.start) / theCase);
+    }
+
+    for (let index = -start; index < stop; index++) {
+      let candle = theData[index];
+      if (candle.timestamp <= offset) {
+        continue;
+      } else if (candle.timestamp > offset + exposition) {
+        stop = index;
+        break;
+      } else if (start < 0) {
+        start = index;
+      }
+      if ((result.low == null) || (result.low > candle.low)) {
+        result.low = candle.low;
+      }
+      if ((result.high == null) || (result.high < candle.high)) {
+        result.high = candle.high;
+      }
+      if ((result.maxVolume == null) || (result.maxVolume < candle.volume)) {
+        result.maxVolume = candle.volume;
+      }
+    }
+
+    start = Math.abs(start);
+    if (stop == null) {
+      stop = theData.length;
+    }
+    let koofY = viewHeight / (result.high - result.low);
+    let koofYV = viewHeight * VOLUME_ZONE / result.maxVolume; // for volume
+    let barHalf = theCase * koofX * 0.25;
+    for (let index = start; index < stop; index++) {
+      let candle = theData[index];
+      let x = (candle.timestamp - offset) * koofX;
+      let pathMainLine = `M${x} ${(result.high - candle.low) * koofY} L${x} ${(result.high - candle.high) * koofY} `;
+      let pathCandleBody = `M${x - barHalf} ${(result.high - candle.close) * koofY} L${x + barHalf} ${(result.high - candle.close) * koofY} ` +
+        `L${x + barHalf} ${(result.high - candle.open) * koofY} L${x - barHalf} ${(result.high - candle.open) * koofY} `;
+      let rCandle = Object.assign({}, candle);
+
+      if (candle.open <= candle.close) {
+        rCandle.class = 'positive';
+        rCandle.candlePathIndex = result.candlesPositivePath.push(pathMainLine + pathCandleBody) - 1;
+      } else {
+        rCandle.class = 'negative';
+        rCandle.candlePathIndex = result.candlesNegativePath.push(pathMainLine + pathCandleBody) - 1;
+      }
+
+      rCandle.volumePathIndex = result.volumePath.push(`M${x - barHalf} ${viewHeight - candle.volume * koofYV} L${x + barHalf} ${viewHeight - candle.volume * koofYV} ` +
+        `L${x + barHalf} ${viewHeight} L${x - barHalf} ${viewHeight} `) - 1;
+
+      rCandle.x = x;
+      result.candles.push(rCandle);
+    }
     if (this.data.start > 0 && this.data.start < offset) {
-      let theCase = this.findCandleWidthForUse(exposition, viewWidth);
-      let theData = this.data.tree[theCase];
-      let koofX = viewWidth / exposition;
-      let result = {
-        low: null,
-        high: null,
-        maxVolume: null,
-        width: theCase * koofX,
-        candles: [],
-        candlesPositivePath: [],
-        candlesNegativePath: [],
-        volumePath: []
-      };
-      let start = 0;
-      let stop = theData.length;
-
-      if (offset > this.data.start) {
-        start = -Math.floor((offset - this.data.start) / theCase);
-      }
-
-      for (let index = -start; index < stop; index++) {
-        let candle = theData[index];
-        if (candle.timestamp <= offset) {
-          continue;
-        } else if (candle.timestamp > offset + exposition) {
-          stop = index;
-          break;
-        } else if (start < 0) {
-          start = index;
-        }
-        if ((result.low == null) || (result.low > candle.low)) {
-          result.low = candle.low;
-        }
-        if ((result.high == null) || (result.high < candle.high)) {
-          result.high = candle.high;
-        }
-        if ((result.maxVolume == null) || (result.maxVolume < candle.volume)) {
-          result.maxVolume = candle.volume;
-        }
-      }
-
-      start = Math.abs(start);
-      if (stop == null) {
-        stop = theData.length;
-      }
-      let koofY = viewHeight / (result.high - result.low);
-      let koofYV = viewHeight * VOLUME_ZONE / result.maxVolume; // for volume
-      let barHalf = theCase * koofX * 0.25;
-      for (let index = start; index < stop; index++) {
-        let candle = theData[index];
-        let x = (candle.timestamp - offset) * koofX;
-        let pathMainLine = `M${x} ${(result.high - candle.low) * koofY} L${x} ${(result.high - candle.high) * koofY} `;
-        let pathCandleBody = `M${x - barHalf} ${(result.high - candle.close) * koofY} L${x + barHalf} ${(result.high - candle.close) * koofY} ` +
-            `L${x + barHalf} ${(result.high - candle.open) * koofY} L${x - barHalf} ${(result.high - candle.open) * koofY} `;
-        let rCandle = Object.assign({}, candle);
-
-        if (candle.open <= candle.close) {
-          rCandle.class = 'positive';
-          rCandle.candlePathIndex = result.candlesPositivePath.push(pathMainLine + pathCandleBody) - 1;
-        } else {
-          rCandle.class = 'negative';
-          rCandle.candlePathIndex = result.candlesNegativePath.push(pathMainLine + pathCandleBody) - 1;
-        }
-
-        rCandle.volumePathIndex = result.volumePath.push(`M${x - barHalf} ${viewHeight - candle.volume * koofYV} L${x + barHalf} ${viewHeight - candle.volume * koofYV} ` +
-          `L${x + barHalf} ${viewHeight} L${x - barHalf} ${viewHeight} `) - 1;
-
-        rCandle.x = x;
-        result.candles.push(rCandle);
-      }
-      this.sendMessage('RENDERED', result);
     } else if (!this.params.dataRequestPending) {
       this.params.dataRequestPending = true;
       this.sendMessage('NEED_DATA', {offset: offset, exposition: this.params.defaultExposition});
     }
+    this.sendMessage('RENDERED', result);
   }
   renderAverage (offset, exposition, viewWidth, viewHeight) {
     if (this.averageData.length) {
-      console.log(viewWidth);
       let dataLength = this.averageData.length;
       let step = (viewWidth) / this.averageData.length;
       let result = {
