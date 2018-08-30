@@ -182,7 +182,7 @@
           this.lastHandle = this.HANDLES.LEFT;
           let offset = this.convertCurrentX();
           let exposition = (this.rightX - event.layerX) / this.xMultiplier;
-          if (this.isExpositionValid(exposition) && this.checkForLeftEdge(offset, exposition)) {
+          if (this.isExpositionValid(exposition) && this.checkForLeftEdge(offset, exposition) && event.layerX < this.rightX) {
             this.expositionLimitLeft = false;
             this.fixed.left = event.layerX;
             this.$emit('handler', {offset, exposition}, 'left');
@@ -194,7 +194,7 @@
           this.lastHandle = this.HANDLES.RIGHT;
           let offset = this.average.minTimestamp + this.leftX / this.xMultiplier;
           let exposition = this.convertCurrentX() - offset;
-          if (this.isExpositionValid(exposition) && this.checkForRightEdge(offset)) {
+          if (this.isExpositionValid(exposition) && this.checkForRightEdge(offset) && event.layerX > this.leftX) {
             this.expositionLimitRight = false;
             this.fixed.right = event.layerX;
             this.$emit('handler', {offset, exposition}, 'right');
@@ -231,7 +231,7 @@
       isExpositionValid (exposition) {
         this.expositionLimitLeft = false;
         this.expositionLimitRight = false;
-        this.expositionLimit = !(exposition < (this.maxExposition - this.minExposition));
+        this.expositionLimit = !(exposition < this.maxExposition && exposition > this.minExposition);
         return !this.expositionLimit;
       },
       onResize () {
