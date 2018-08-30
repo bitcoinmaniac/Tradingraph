@@ -53,12 +53,16 @@
       return {
         timePart: 0,
         lineOffset: 5,
-        dateOffset: 15
+        dateOffset: 15,
+        datePickerWidth: 50
       }
     },
     computed: {
       axisOffset () {
         return this.chartHeight + this.chartOffset;
+      },
+      availableParts () {
+        return Math.ceil(this.chartWidth / (this.datePickerWidth * 2));
       },
       axisX() {
         let timePart = null;
@@ -66,7 +70,6 @@
         let result = [];
 
         this.timeParts.map((candidate) => {
-          debugger;
           let candidatePartsNumber = this.exposition / (candidate * 2);
 
           if (
@@ -81,8 +84,8 @@
         if (!timePart) {
           timePart = this.timeParts[this.timeParts.length - 1] || 1;
           let numOfPoints = this.exposition / timePart;
-          if (numOfPoints > 8) {
-            timePart = Math.ceil((this.exposition / 8) / timePart) * timePart;
+          if (numOfPoints > this.availableParts) {
+            timePart = Math.ceil((this.exposition / this.availableParts) / timePart) * timePart;
           }
         }
 

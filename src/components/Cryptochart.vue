@@ -15,7 +15,7 @@
       <!--main chart group-->
       <g>
         <g v-if="interactive.hoverCandle">
-          <text :y="15" :x="8" style="text-anchor: start;" :font-size="12 * (koofScreenY)">
+          <text :y="15" :x="8" style="text-anchor: start;" :font-size="interactiveTool.fontSize">
             O: {{interactive.hoverCandle.open.toFixed(6)}}
             H: {{interactive.hoverCandle.high.toFixed(6)}}
             L: {{interactive.hoverCandle.low.toFixed(6)}}
@@ -91,6 +91,9 @@
           hoverCandle: null,
           cursorX: 0,
           cursorY: 0
+        },
+        interactiveTool: {
+          fontSize: 12
         }
       };
     },

@@ -4,6 +4,11 @@ export default {
       type: Object,
       required: false
     },
+    settings: {
+      type: Object,
+      required: false,
+      default: () => {}
+    },
     data: {
       type: Array,
       required: true
@@ -91,5 +96,15 @@ export default {
       this.chartData = value;
       return {}
     },
+    settings () {
+      if (this.settings.interactiveTool.fontSize) {
+        this.interactiveTool.fontSize = this.settings.interactiveTool.fontSize;
+      }
+    }
+  },
+  mounted () {
+    if (this.settings && this.settings.interactiveTool && this.settings.interactiveTool.fontSize) {
+      this.interactiveTool.fontSize = this.settings.interactiveTool.fontSize;
+    }
   }
 };
