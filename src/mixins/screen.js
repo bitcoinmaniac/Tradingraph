@@ -56,15 +56,26 @@ export default {
       return this.minPart * 10 > 86400 ? this.minPart * 10 : 86400;
     },
     maxExposition () {
-      return this.maxPart * 100
+      let maxCandleWidth = this.availableCandleWidths[this.availableCandleWidths.length - 1];
+      let expositionLimit = this.interval.width - this.average.minTimestamp;
+      if (this.availableCandleWidths.length) {
+        let expositionByCandles = maxCandleWidth * this.chart.width / 3;
+        return expositionLimit > expositionByCandles ? expositionByCandles : expositionLimit;
+      }
+      return this.maxPart;
     },
     minZoom () {
-      let minZoom = this.interval.width / (this.maxExposition);
-      if (this.availableCandleWidths.length) {
-        let maxCandleWidth = this.availableCandleWidths[this.availableCandleWidths.length - 1];
-        minZoom = this.interval.width / (maxCandleWidth * this.chart.width / 3);
-      }
-      return minZoom;
+      // let minZoom = this.interval.width / (this.maxExposition);
+      // if (this.availableCandleWidths.length) {
+      //   let maxCandleWidth = this.availableCandleWidths[this.availableCandleWidths.length - 1];
+      //   let minZoomByCandleWidth = (this.interval.width) / (maxCandleWidth * this.chart.width / 3);
+      //   if (this.average.minTimestamp) {
+      //     minZoom = minZoomByCandleWidth < minZoom ? minZoom : minZoomByCandleWidth;
+      //   } else {
+      //     minZoom = minZoomByCandleWidth;
+      //   }
+      // }
+      return this.interval.width / (this.maxExposition);
     },
     maxZoom () {
       return this.interval.width / (this.minExposition)
@@ -82,6 +93,12 @@ export default {
     },
     'initialSize.width' () {
       this._onResize();
+    },
+    reloadCounter () {
+      this.average.minTimestamp = 0;
+    },
+    'average.minTimestamp' () {
+      this.setView(this.intervalStartOffset, this.initExposition);
     }
   },
   created () {
