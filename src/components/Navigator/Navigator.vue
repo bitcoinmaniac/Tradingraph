@@ -49,13 +49,11 @@
       },
       minZoom: {
         type: Number,
-        required: false,
-        default: 86400
+        required: false
       },
       maxZoom: {
         type: Number,
-        required: false,
-        default: 86400 * 365
+        required: false
       }
     },
     data () {
@@ -92,7 +90,7 @@
         return this.average.path && this.average.path.join() || '';
       },
       xMultiplier () {
-        return this.width / (this.average.maxTimestamp - this.average.minTimestamp);
+        return this.width / ((new Date()).getTime() / 1e3 - this.average.minTimestamp);
       },
       leftX () {
         if (this.eventsMouse.scrolling.isScrolling) {
@@ -132,6 +130,12 @@
       isRightHandle () {
         return this.lastHandle !== this.HANDLES.LEFT && this.lastHandle !== this.HANDLES.CENTER &&
           this.isRight(this.eventsMouse.scrolling.layerX) || this.lastHandle === this.HANDLES.RIGHT
+      },
+      maxExposition () {
+        return ((new Date()).getTime() / 1e3) / this.minZoom
+      },
+      minExposition () {
+        return ((new Date()).getTime() / 1e3) / this.maxZoom
       }
     },
     watch: {
@@ -219,7 +223,7 @@
         return this.average.minTimestamp + (event.layerX + additional) / this.xMultiplier;
       },
       checkForRightEdge (offset, exposition = this.exposition) {
-        return (offset + exposition) < this.average.maxTimestamp
+        return (offset + exposition) < (new Date()).getTime() / 1e3;
       },
       checkForLeftEdge (offset) {
         return (offset) > this.average.minTimestamp - this.handleWidth
@@ -227,11 +231,10 @@
       isExpositionValid (exposition) {
         this.expositionLimitLeft = false;
         this.expositionLimitRight = false;
-        this.expositionLimit = !(exposition < (this.maxZoom - this.minZoom));
+        this.expositionLimit = !(exposition < (this.maxExposition - this.minExposition));
         return !this.expositionLimit;
       },
       onResize () {
-        console.log('resize');
         this.width = this.$el.clientWidth;
       }
     },
