@@ -61,7 +61,7 @@
     data () {
       return {
         yIndent: 3,
-        handleWidth: 6,
+        handleWidth: 8,
         lastHandle: null,
         HANDLES: {
           LEFT: 0,
@@ -151,13 +151,13 @@
     },
     methods: {
       isLeft (x) {
-        return x >= this.leftX - 2 * this.handleWidth && x <= this.leftX - this.handleWidth;
+        return x >= this.leftX - 2 * this.handleWidth && x <= this.leftX;
       },
       isCenter (x) {
-        return x >= this.leftX - this.handleWidth && x <= this.rightX - this.handleWidth;
+        return x >= this.leftX && x <= this.rightX - this.handleWidth;
       },
       isRight (x) {
-        return x >= this.rightX - this.handleWidth && x <= this.rightX;
+        return x >= this.rightX - this.handleWidth && x <= this.rightX + this.handleWidth;
       },
       computeGrabStyle (x) {
         if (this.isCenter(x)) {
