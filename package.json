@@ -7,6 +7,10 @@
   "browser": {
     "./sfc": "src/App.vue"
   },
+  "files": [
+    "src",
+    "dist"
+  ],
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
