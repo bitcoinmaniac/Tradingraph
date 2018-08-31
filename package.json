@@ -1,6 +1,6 @@
 {
   "name": "tradingraph",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "The VUE component for visualization market-data of crypto exchanges.",
   "main": "dist/tradingraph.min.js",
   "browser": "dist/tradingraph.min.js",
