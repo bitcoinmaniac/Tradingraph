@@ -26,7 +26,6 @@ const webpackConfig = merge(baseWebpackConfig, {
   devtool: config.build.productionSourceMap ? config.build.devtool : false,
   output: {
     path: config.build.assetsRoot,
-    publicPath: '/',
     filename: 'tradingraph.min.js',
     library: 'tradingraph',
     libraryTarget: 'umd',
@@ -85,7 +84,7 @@ const webpackConfig = merge(baseWebpackConfig, {
     // keep module.id stable when vendor modules does not change
     new webpack.HashedModuleIdsPlugin(),
     // enable scope hoisting
-    new webpack.optimize.ModuleConcatenationPlugin(),
+    // new webpack.optimize.ModuleConcatenationPlugin(),
     // split vendor js into its own file
     // new webpack.optimize.CommonsChunkPlugin({
     //   name: 'vendor',
@@ -100,15 +99,15 @@ const webpackConfig = merge(baseWebpackConfig, {
     //     )
     //   }
     // }),
-    // extract webpack runtime and module manifest to its own file in order to
-    // prevent vendor hash from being updated whenever app bundle is updated
+    // // extract webpack runtime and module manifest to its own file in order to
+    // // prevent vendor hash from being updated whenever app bundle is updated
     // new webpack.optimize.CommonsChunkPlugin({
     //   name: 'manifest',
     //   minChunks: Infinity
     // }),
-    // This instance extracts shared chunks from code splitted chunks and bundles them
-    // in a separate chunk, similar to the vendor chunk
-    // see: https://webpack.js.org/plugins/commons-chunk-plugin/#extra-async-commons-chunk
+    // // This instance extracts shared chunks from code splitted chunks and bundles them
+    // // in a separate chunk, similar to the vendor chunk
+    // // see: https://webpack.js.org/plugins/commons-chunk-plugin/#extra-async-commons-chunk
     // new webpack.optimize.CommonsChunkPlugin({
     //   name: 'app',
     //   async: 'vendor-async',

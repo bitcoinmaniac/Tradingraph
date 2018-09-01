@@ -1,4 +1,4 @@
-import CandlesWorker from 'worker-loader?fallback=false!../workers/CandlesWorker.js';
+import CandlesWorker from 'worker-loader?inline=true!@/workers/CandlesWorker.js';
 
 export default {
   data () {
