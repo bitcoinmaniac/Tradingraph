@@ -20,7 +20,7 @@ class CandlesWorker {
       lastTimestamp: 0,
       defaultExposition: 86400 * 30
     }
-    console.log('constructor');
+    // console.log('constructor');
     this.requestParams();
   }
   /**

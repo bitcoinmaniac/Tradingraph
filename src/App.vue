@@ -50,19 +50,19 @@
 
 <script>
   import cloneDeep from 'lodash.clonedeep';
-  import MixinScreen from '../mixins/screen';
-  import MixinEventsMouse from '../mixins/events-mouse';
-  import MixinEventsTouche from '../mixins/events-touch';
-  import MixinEventsWheel from '../mixins/events-wheel';
-  import MixinFilters from '../mixins/filters';
-  import MixinProps from '../mixins/props';
-  import MixinWorkers from '../mixins/workers';
-  import MixinOptions from '../mixins/options';
+  import MixinScreen from './mixins/screen';
+  import MixinEventsMouse from './mixins/events-mouse';
+  import MixinEventsTouche from './mixins/events-touch';
+  import MixinEventsWheel from './mixins/events-wheel';
+  import MixinFilters from './mixins/filters';
+  import MixinProps from './mixins/props';
+  import MixinWorkers from './mixins/workers';
+  import MixinOptions from './mixins/options';
 
-  import AxisX from "./Axis/AxisX";
-  import AxisY from "./Axis/AxisY";
-  import Crosshair from "./Intercative/Crosshair"
-  import Navigator from "./Navigator/Navigator"
+  import AxisX from "./components/Axis/AxisX";
+  import AxisY from "./components/Axis/AxisY";
+  import Crosshair from "./components/Intercative/Crosshair"
+  import Navigator from "./components/Navigator/Navigator"
 
   export default {
     name: 'crypto-chart',
