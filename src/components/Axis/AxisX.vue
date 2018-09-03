@@ -2,7 +2,7 @@
   <g>
     <g v-for="time in axisX" :transform="`translate(${time.x})`" :key="time.time">
       <line :y1="axisOffset" :y2="axisOffset + lineOffset" :x1="xOffset" :x2="xOffset" class="axis-x" opacity="0.3"></line>
-      <text :y="axisOffset + dateOffset" style="text-anchor: middle;" font-size="10">
+      <text :y="axisOffset + dateOffset" style="text-anchor: middle; font-family: monospace" font-size="10">
         {{time.time | time(timePart)}}
       </text>
     </g>

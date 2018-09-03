@@ -81,7 +81,11 @@
     },
     computed: {
       navigatotScale () {
-        return `translate(${this.handleWidth}) scale(${(this.width - 2 * this.handleWidth) / this.width})`;
+        if (this.width) {
+          return `translate(${this.handleWidth}) scale(${(this.width - 2 * this.handleWidth) / this.width})`;
+        } else {
+          return `translate(${this.handleWidth})`;
+        }
       },
       navigatorPathScale () {
         return `translate(0, ${this.yIndent}) scale(1, ${(this.height - 2 * this.yIndent) / this.height})`;
