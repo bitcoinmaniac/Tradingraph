@@ -1,4 +1,4 @@
-import CandlesWorker from 'worker-loader!../workers/CandlesWorker.js';
+import CandlesWorker from 'worker-loader?inline=true!@/workers/CandlesWorker.js';
 
 export default {
   data () {
@@ -88,7 +88,7 @@ export default {
         case 'NEED_PARAMS' : {
           this.$emit('requestParams', message.data.body.outer);
           if (message.data.body.inner.candleWidths && this.availableCandleWidths.length) {
-            candlesWorker.postMessage({
+            this.workers.candlesWorker.postMessage({
               task: 'SET-PARAMS',
               params: {
                 candleWidths: this.availableCandleWidths
@@ -113,6 +113,7 @@ export default {
           if (message.data.body.minTimestamp) {
             this.interval.firstPoint = message.data.body.minTimestamp;
           }
+          break;
         }
         default: break;
       }
