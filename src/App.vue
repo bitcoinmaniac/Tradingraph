@@ -15,7 +15,8 @@
       <!--main chart group-->
       <g>
         <g v-if="interactive.hoverCandle">
-          <text :y="15" :x="8" style="text-anchor: start; font-family: monospace" :font-size="interactiveTool.fontSize">
+          <text :y="15" :x="8" style="text-anchor: start; font-family: monospace" :font-size="interactiveTool.fontSize"
+                :style="hoverColor(interactive.hoverCandle.open, interactive.hoverCandle.close)">
             O: {{interactive.hoverCandle.open.toFixed(6)}}
             H: {{interactive.hoverCandle.high.toFixed(6)}}
             L: {{interactive.hoverCandle.low.toFixed(6)}}
@@ -153,6 +154,9 @@
           });
         }
       },
+      hoverColor (open, close) {
+        return `stroke: ${open > close ? 'rgba(211, 47, 47, 0.8)' : 'rgba(104, 159, 56, 0.8)'}`;
+      }
     }
   };
 </script>
