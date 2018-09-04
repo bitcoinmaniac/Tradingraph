@@ -8,16 +8,16 @@
        @touchmove.prevent="_onMixinTouch"
        @touchend.prevent="_onMixinTouch"
        @touchcancel.prevent="_onMixinTouch"
-       :style="grabStyle">
+       :style="[grabStyle, {height: height + 'px'}]">
     <line x1="0" :x2="width" stroke="black" opacity="0.3"/>
     <g :transform="navigatotScale">
       <g :transform="navigatorPathScale">
         <path class="candles-path-volume" fill="transparent" stroke="rgba(21,101,192,0.8)" :d="navigatorPath"/>
       </g>
       <g>
-        <path fill="rgba(21,101,192,0.8)" :class="{'please-stop-handle': expositionLimitLeft}" :d="left"/>
-        <path fill="rgba(21,101,192,0.1)" :class="{'please-stop-center': expositionLimit}" :d="center"></path>
-        <path fill="rgba(21,101,192,0.8)" :class="{'please-stop-handle': expositionLimitRight}" :d="right"/>
+        <path fill="rgba(21,101,192,0.8)" stroke="1" :class="{'please-stop-handle': expositionLimitLeft}" :d="left"/>
+        <path fill="rgba(21,101,192,0.1)" stroke="1" :class="{'please-stop-center': expositionLimit}" :d="center"></path>
+        <path fill="rgba(21,101,192,0.8)" stroke="1" :class="{'please-stop-handle': expositionLimitRight}" :d="right"/>
       </g>
     </g>
     <line x1="0" :x2="width" :y1="height" :y2="height" stroke="black" opacity="0.3"/>
@@ -76,7 +76,7 @@
         expositionLimit: false,
         expositionLimitLeft: false,
         expositionLimitRight: false,
-        grabStyle: 'cursor: default'
+        grabStyle: {cursor: 'default'}
       }
     },
     computed: {
@@ -91,7 +91,7 @@
         return `translate(0, ${this.yIndent}) scale(1, ${(this.height - 2 * this.yIndent) / this.height})`;
       },
       navigatorPath () {
-        return this.average.path && this.average.path.join() || '';
+        return this.average.path && this.average.path.join(' ') || '';
       },
       xMultiplier () {
         return this.width / ((new Date()).getTime() / 1e3 - this.average.minTimestamp);
@@ -113,15 +113,15 @@
         }
       },
       left () {
-        return `M${this.leftX} 0, L${this.leftX - this.handleWidth} 0,
-                L${this.leftX - this.handleWidth} ${this.height}, L${this.leftX} ${this.height}`;
+        return `M${this.leftX} 0 L${this.leftX - this.handleWidth} 0
+                L${this.leftX - this.handleWidth} ${this.height} L${this.leftX} ${this.height}`;
       },
       center () {
-        return `M${this.leftX} 0, L${this.rightX} 0, L${this.rightX} ${this.height}, L${this.leftX} ${this.height}`;
+        return `M${this.leftX} 0 L${this.rightX} 0 L${this.rightX} ${this.height} L${this.leftX} ${this.height}`;
       },
       right () {
-        return `M${this.rightX} 0, L${this.rightX + this.handleWidth} 0,
-                L${this.rightX + this.handleWidth} ${this.height}, L${this.rightX} ${this.height}`;
+        return `M${this.rightX} 0 L${this.rightX + this.handleWidth} 0
+                L${this.rightX + this.handleWidth} ${this.height} L${this.rightX} ${this.height}`;
       },
       isLeftHandle () {
         return this.lastHandle !== this.HANDLES.CENTER && this.lastHandle !== this.HANDLES.RIGHT &&
@@ -169,11 +169,11 @@
       },
       computeGrabStyle (x) {
         if (this.isCenter(x)) {
-          this.grabStyle = 'cursor: grab';
+          this.grabStyle.cursor = 'grab';
         } else if (this.isRight(x) || this.isLeft(x)) {
-          this.grabStyle = 'cursor: ew-resize';
+          this.grabStyle.cursor = 'ew-resize';
         } else {
-          this.grabStyle = 'cursor: default';
+          this.grabStyle.cursor = 'default';
         }
       },
       moveHandler (event) {
@@ -182,9 +182,9 @@
       },
       onSwipe (notInteresting, event) {
         if (this.isLeftHandle) {
-          this.grabStyle = 'cursor: ew-resize';
+          this.grabStyle.cursor = 'ew-resize';
           this.lastHandle = this.HANDLES.LEFT;
-          let offset = this.convertCurrentX();
+          let offset = this.convertCurrentX(event.layerX);
           let exposition = (this.rightX - event.layerX) / this.xMultiplier;
           if (this.isExpositionValid(exposition) && this.checkForLeftEdge(offset, exposition) && event.layerX < this.rightX) {
             this.expositionLimitLeft = false;
@@ -194,10 +194,10 @@
             this.expositionLimitLeft = true;
           }
         } else if (this.isRightHandle) {
-          this.grabStyle = 'cursor: ew-resize';
+          this.grabStyle.cursor = 'ew-resize';
           this.lastHandle = this.HANDLES.RIGHT;
           let offset = this.average.minTimestamp + this.leftX / this.xMultiplier;
-          let exposition = this.convertCurrentX() - offset;
+          let exposition = this.convertCurrentX(event.layerX) - offset;
           if (this.isExpositionValid(exposition) && this.checkForRightEdge(offset) && event.layerX > this.leftX) {
             this.expositionLimitRight = false;
             this.fixed.right = event.layerX;
@@ -206,25 +206,25 @@
             this.expositionLimitRight = true;
           }
         } else if (this.isCenterHandle) {
-          this.grabStyle = 'cursor: grabbing';
+          this.grabStyle.cursor = 'grabbing';
           if (!this.lastHandle) {
             this.startCenterDiff = this.leftX - event.layerX;
             this.startExposition = this.fixed.right - this.fixed.left;
           }
           this.lastHandle = this.HANDLES.CENTER;
-          let offset = this.convertCurrentX(this.startCenterDiff);
+          let offset = this.convertCurrentX(event.layerX, this.startCenterDiff);
           if (this.checkForRightEdge(offset, this.startExposition / this.xMultiplier) && this.checkForLeftEdge(offset)) {
             this.fixed.left = event.layerX + this.startCenterDiff;
             this.fixed.right = this.fixed.left + this.startExposition;
             this.$emit('handler', {offset}, 'center');
           }
         } else {
-          this.grabStyle = 'cursor: default';
+          this.grabStyle.cursor = 'default';
           this.lastHandle = null;
         }
       },
-      convertCurrentX (additional = 0) {
-        return this.average.minTimestamp + (event.layerX + additional) / this.xMultiplier;
+      convertCurrentX (x, additional = 0) {
+        return this.average.minTimestamp + (x + additional) / this.xMultiplier;
       },
       checkForRightEdge (offset, exposition = this.exposition) {
         return (offset + exposition) < (new Date()).getTime() / 1e3;
@@ -239,7 +239,7 @@
         return !this.expositionLimit;
       },
       onResize () {
-        this.width = this.$el.clientWidth;
+        this.width = this.$el.clientWidth || this.$el.parentNode.clientWidth;
       }
     },
     beforeDestroy () {

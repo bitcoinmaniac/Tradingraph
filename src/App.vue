@@ -105,7 +105,7 @@
           result = cloneDeep(result);
           result.splice(this.interactive.hoverCandle.candlePathIndex, 1);
         }
-        return result.join();
+        return result.join(' ');
       },
       negativeCandlesPath() {
         let result = this.candles.candlesNegativePath;
@@ -113,7 +113,7 @@
           result = cloneDeep(result);
           result.splice(this.interactive.hoverCandle.candlePathIndex, 1);
         }
-        return result.join();
+        return result.join(' ');
       },
       volumeCandlesPath() {
         let result = this.candles.volumePath;
@@ -121,7 +121,7 @@
           result = result.slice();
           result.splice(this.interactive.hoverCandle.volumePathIndex, 1);
         }
-        return result.join();
+        return result.join(' ');
       },
       fontSizeAxisY() {
         return this.fontHeight < (this.chart.offset.left / 6) ? this.chart.offset.left / 6 : this.fontHeight;

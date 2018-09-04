@@ -110,10 +110,10 @@ export default {
   methods: {
     _onResize () {
       if (this.width) {
-        this.clientWidth = this.$refs.chart.clientWidth;
+        this.clientWidth = this.$refs.chart.clientWidth || this.$refs.chart.parentNode.clientWidth;
       }
       if (this.height) {
-        this.clientHeight = this.$refs.chart.clientHeight;
+        this.clientHeight = this.$refs.chart.clientHeight || this.$refs.chart.parentNode.clientHeight;
       }
       if (this.initialSize.width > 0) {
         this.width = this.initialSize.width;
@@ -129,8 +129,8 @@ export default {
       this.chart.height = this.height - this.offsets.chartTop - this.offsets.chartBottom;
       if (!this.clientWidth && !this.clientHeight) {
         this.$nextTick(() => {
-          this.clientWidth = this.$refs.chart.clientWidth;
-          this.clientHeight = this.$refs.chart.clientHeight;
+          this.clientWidth = this.$refs.chart.clientWidth || this.$refs.chart.parentNode.clientWidth;
+          this.clientHeight = this.$refs.chart.clientHeight || this.$refs.chart.parentNode.clientHeight;
         });
       }
       if ('onRedraw' in this) {

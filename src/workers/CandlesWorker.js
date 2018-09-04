@@ -223,7 +223,7 @@ class CandlesWorker {
     let koofX = viewWidth / exposition;
     result.width = theCase * koofX;
     let start = 0;
-    console.log('RENDER', theCase === this.data.lastResolution);
+    // console.log('RENDER', offset, exposition, viewWidth, viewHeight);
     if (theData && this.data.lastResolution === theCase) {
       let stop = theData.length;
       if (offset > this.data.start) {
