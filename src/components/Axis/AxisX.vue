@@ -54,7 +54,7 @@
         timePart: 0,
         lineOffset: 5,
         dateOffset: 15,
-        datePickerWidth: 50
+        datePickerWidth: 80
       }
     },
     computed: {
