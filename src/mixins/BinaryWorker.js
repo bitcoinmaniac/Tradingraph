@@ -33,7 +33,7 @@ export default {
   mounted () {
     let binaryWorker = new BinaryWorker();
     binaryWorker.onmessage = this.onBinaryWorkerMessage;
-    // binaryWorker.redraw = this._remakeCandles;
+    binaryWorker.redraw = this.renderCandles;
     this.workers.binaryWorker = binaryWorker;
     this.workers.binaryWorker.requestedParams = [];
   },
@@ -56,6 +56,7 @@ export default {
           for (let i = 0, len = message.data.body.type.length; i < len; i++) {
             switch (message.data.body.type[i]) {
               case 'candleData': {
+                this.renderCandles();
                 break;
               }
               case 'averageData': {
@@ -63,10 +64,8 @@ export default {
                   task: 'RENDER',
                   params: {
                     type: 'average',
-                    params: {
-                      viewWidth: this.clientWidth,
-                      viewHeight: this.sizes.navigator.height
-                    }
+                    viewWidth: this.clientWidth,
+                    viewHeight: this.sizes.navigator.height
                   }
                 });
                 break;
@@ -77,7 +76,6 @@ export default {
           break;
         }
         case 'RENDERED': {
-          console.log('RENDERED', message);
           switch (message.data.body.type) {
             case 'average': {
               this.average = message.data.body.data;
@@ -86,10 +84,35 @@ export default {
               }
               break;
             }
+            case 'candles': {
+              let candles = {};
+              for (let field in message.data.body.data) {
+                if (field !== 'candles') {
+                  candles[field] = message.data.body.data[field];
+                }
+              }
+              this.candles = candles;
+              this.candles['candles'] = message.data.body.data.candles;
+              break;
+            }
             default: break;
           }
         }
         default: break;
+      }
+    },
+    renderCandles () {
+      if (this.chart.width && this.chart.height) {
+        this.workers.binaryWorker.postMessage({
+          task: 'RENDER',
+          params: {
+            type: 'candles',
+            offset: this.interval.offset,
+            exposition: this.exposition,
+            viewWidth: this.chart.width,
+            viewHeight: this.chart.height
+          }
+        });
       }
     },
     findRequestedParam (newParams, requestedParam) {

@@ -56,6 +56,7 @@ class BinaryDataWorker {
     return exposition;
   }
   append (data) {
+    this.data.treeReady = false;
     this.params.dataRequestPending = false;
     this.appendedData = ['candleData'];
     this.data.rawBinary = data;
@@ -66,6 +67,7 @@ class BinaryDataWorker {
       this.data.averageParsed = this.data.rawParsed.slice();
       this.params.isInitialLoading = false;
     }
+    this.makeTree();
     this.sendMessage('APPENDED', { type: this.appendedData });
   }
   parseEntity (entity) {
@@ -86,6 +88,168 @@ class BinaryDataWorker {
     }
     return dataArray;
   }
+  /**
+   * @description Make specific tree by raw data
+   * @return none
+   */
+  makeTree () {
+    if (this.data.rawParsed.length > 0) {
+      this.data.start = this.data.rawParsed[0].timestamp;
+      this.data.end = this.data.rawParsed[this.data.rawParsed.length - 1].timestamp;
+      this.params.candleWidths.map((case_) => {
+        this.data.tree[case_] = [];
+
+        let lastCandle = null;
+
+        this.data.rawParsed.map((candle) => {
+          let id = candle.timestamp - (candle.timestamp % case_);
+          if (lastCandle && (id === lastCandle.id)) {
+            lastCandle.low = candle.low < lastCandle.low ? candle.low : lastCandle.low;
+            lastCandle.high = candle.high > lastCandle.high ? candle.high : lastCandle.high;
+            lastCandle.close = candle.close;
+            lastCandle.volume += candle.volume;
+          } else {
+            if (lastCandle) {
+              this.data.tree[case_].push(lastCandle);
+            }
+            lastCandle = {
+              id: id,
+              timestamp: candle.timestamp,
+              open: candle.open,
+              low: candle.low,
+              high: candle.high,
+              close: candle.close,
+              volume: candle.volume
+            };
+          }
+        });
+        if (lastCandle) {
+          this.data.tree[case_].push(lastCandle);
+        }
+      });
+      this.data.treeReady = true;
+    }
+  }
+  /**
+   * @description Looking for satisfying width of candle
+   * @param {Number} exposition - exposition width
+   * @param {Number} viewWidth  - view box width
+   * @return true/false
+   */
+  findCandleWidthForUse (exposition, viewWidth) {
+    let targetCandleNumber = viewWidth / MIN_WIDTH_CANDLE;
+    let caseCandidate = null;
+    let prevCandleDiff = 0;
+    this.params.candleWidths.map((case_) => {
+      if (caseCandidate) {
+        let candleDiff = Math.abs(Math.round(targetCandleNumber - exposition / case_));
+        if (candleDiff < prevCandleDiff) {
+          prevCandleDiff = candleDiff;
+          caseCandidate = case_;
+        }
+      } else {
+        caseCandidate = case_;
+        prevCandleDiff = Math.abs(Math.round(targetCandleNumber - exposition / case_));
+      }
+    });
+    return caseCandidate;
+  }
+  /**
+   * @description Render candles objects
+   * @param {Number} offset     - exposition offset
+   * @param {Number} exposition - exposition width
+   * @param {Number} viewWidth  - view box width
+   */
+  renderCandles (offset, exposition, viewWidth, viewHeight) {
+    if (!this.data.treeReady) {
+      this.makeTree();
+    }
+    let result = {
+      low: null,
+      high: null,
+      maxVolume: null,
+      width: null,
+      candles: [],
+      candlesPositivePath: [],
+      candlesNegativePath: [],
+      volumePath: []
+    };
+    let theCase = this.findCandleWidthForUse(exposition, viewWidth);
+    let theData = this.data.tree[theCase];
+    let koofX = viewWidth / exposition;
+    result.width = theCase * koofX;
+    let start = 0;
+    // console.log('RENDER', theData);
+    if (theData /* && this.data.lastResolution === theCase */) {
+      let stop = theData.length;
+      if (offset > this.data.start) {
+        start = -Math.floor((offset - this.data.start) / theCase);
+      }
+
+      for (let index = -start; index < stop; index++) {
+        let candle = theData[index];
+        if (candle.timestamp <= offset) {
+          continue;
+        } else if (candle.timestamp > offset + exposition) {
+          stop = index;
+          break;
+        } else if (start < 0) {
+          start = index;
+        }
+        if ((result.low == null) || (result.low > candle.low)) {
+          result.low = candle.low;
+        }
+        if ((result.high == null) || (result.high < candle.high)) {
+          result.high = candle.high;
+        }
+        if ((result.maxVolume == null) || (result.maxVolume < candle.volume)) {
+          result.maxVolume = candle.volume;
+        }
+      }
+
+      start = Math.abs(start);
+      if (stop == null) {
+        stop = theData.length;
+      }
+      let koofY = viewHeight / (result.high - result.low);
+      let koofYV = viewHeight * VOLUME_ZONE / result.maxVolume; // for volume
+      let barHalf = theCase * koofX * 0.25;
+      for (let index = start; index < stop; index++) {
+        let candle = theData[index];
+        let x = (candle.timestamp - offset) * koofX;
+        let pathMainLine = `M${x} ${(result.high - candle.low) * koofY} L${x} ${(result.high - candle.high) * koofY} `;
+        let pathCandleBody = `M${x - barHalf} ${(result.high - candle.close) * koofY} L${x + barHalf} ${(result.high - candle.close) * koofY} ` +
+          `L${x + barHalf} ${(result.high - candle.open) * koofY} L${x - barHalf} ${(result.high - candle.open) * koofY} `;
+        let rCandle = Object.assign({}, candle);
+
+        if (candle.open <= candle.close) {
+          rCandle.class = 'positive';
+          rCandle.candlePathIndex = result.candlesPositivePath.push(pathMainLine + pathCandleBody) - 1;
+        } else {
+          rCandle.class = 'negative';
+          rCandle.candlePathIndex = result.candlesNegativePath.push(pathMainLine + pathCandleBody) - 1;
+        }
+
+        rCandle.volumePathIndex = result.volumePath.push(`M${x - barHalf} ${viewHeight - candle.volume * koofYV} L${x + barHalf} ${viewHeight - candle.volume * koofYV} ` +
+          `L${x + barHalf} ${viewHeight} L${x - barHalf} ${viewHeight} `) - 1;
+
+        rCandle.x = x;
+        result.candles.push(rCandle);
+      }
+    } else if (!this.params.dataRequestPending) {
+      // this.params.dataRequestPending = true;
+      // this.sendMessage('REQUEST_DATA', {offset: 0, end: this.params.resolutions[this.params.resolutions.length - 1], resolution: theCase});
+      // this.data.lastResolution = theCase;
+      // return false;
+    }
+    // if (this.data.start > 0 && this.data.start <= offset) {
+    // } else if (!this.params.dataRequestPending && offset > this.params.firstTimestamp) {
+    //   this.params.dataRequestPending = true;
+    //   this.sendMessage('REQUEST_DATA', {offset: offset, end: this.params.resolutions[this.params.resolutions.length - 1], resolution: theCase});
+    // }
+    this.data.lastResolution = theCase;
+    this.sendMessage('RENDERED', { type: 'candles', data: result });
+  }
   renderAverage (viewWidth, viewHeight) {
     let dataLength = this.data.averageParsed.length;
     if (dataLength) {
@@ -103,7 +267,7 @@ class BinaryDataWorker {
       for (let i = 1; i < dataLength; i++) {
         result.path.push(`L${step * i} ${yMultiplyer * (highest - this.data.averageParsed[i].average)}`);
       }
-      this.sendMessage('RENDERED', { data: result, type: 'average'});
+      this.sendMessage('RENDERED', { type: 'average', data: result});
     }
   }
   /**
@@ -124,7 +288,7 @@ class BinaryDataWorker {
         if (
           Object.keys(this.params.fileSizes).length > 0 && this.params.resolutions.length > 0 &&
           this.params.fileSizes[this.params.resolutions[this.params.resolutions.length - 1]] > 0 &&
-          this.params.packetSize && !this.params.dataRequestPending && !this.data.rawBinary.length
+          this.params.packetSize && !this.params.dataRequestPending && !this.params.initialLoading
         ) {
           this.initialLoading(this.params.resolutions[this.params.resolutions.length - 1]);
         }
@@ -135,9 +299,14 @@ class BinaryDataWorker {
         break;
       }
       case 'RENDER': {
-        switch (message.data.params.type) {
-          case 'average' : {
-            this.renderAverage(message.data.params.params.viewWidth, message.data.params.params.viewHeight);
+        let params = message.data.params;
+        switch (params.type) {
+          case 'average': {
+            this.renderAverage(params.viewWidth, params.viewHeight);
+            break;
+          }
+          case 'candles': {
+            this.renderCandles(params.offset, params.exposition, params.viewWidth, params.viewHeight);
             break;
           }
           default: break;
