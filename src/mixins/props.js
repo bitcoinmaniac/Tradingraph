@@ -10,16 +10,17 @@ export default {
       default: () => {}
     },
     data: {
-      type: Array,
+      type: [Array, ArrayBuffer],
       required: true
     },
     dataAverage: {
       type: Array,
       required: true
     },
-    noMoreData: {
-      type: Boolean,
-      required: true
+    requestedParams: {
+      type: Object,
+      required: true,
+      default: {}
     },
     isEmpty: {
       type: Boolean,
@@ -58,8 +59,13 @@ export default {
     },
     params: {
       type: Object,
-      required: true,
+      required: false,
       default: {}
+    },
+    minCandleWidth: {
+      type: Number,
+      required: false,
+      default: 3
     }
   },
   watch: {

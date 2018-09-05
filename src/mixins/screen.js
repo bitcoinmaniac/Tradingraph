@@ -57,24 +57,14 @@ export default {
     },
     maxExposition () {
       let maxCandleWidth = this.availableCandleWidths[this.availableCandleWidths.length - 1];
-      let expositionLimit = this.interval.width - this.average.minTimestamp;
+      let expositionLimit = this.interval.width - this.interval.firstPoint;
       if (this.availableCandleWidths.length) {
-        let expositionByCandles = maxCandleWidth * this.chart.width / 3;
+        let expositionByCandles = maxCandleWidth * this.chart.width / this.minCandleWidth;
         return expositionLimit > expositionByCandles ? expositionByCandles : expositionLimit;
       }
       return this.maxPart;
     },
     minZoom () {
-      // let minZoom = this.interval.width / (this.maxExposition);
-      // if (this.availableCandleWidths.length) {
-      //   let maxCandleWidth = this.availableCandleWidths[this.availableCandleWidths.length - 1];
-      //   let minZoomByCandleWidth = (this.interval.width) / (maxCandleWidth * this.chart.width / 3);
-      //   if (this.average.minTimestamp) {
-      //     minZoom = minZoomByCandleWidth < minZoom ? minZoom : minZoomByCandleWidth;
-      //   } else {
-      //     minZoom = minZoomByCandleWidth;
-      //   }
-      // }
       return this.interval.width / (this.maxExposition);
     },
     maxZoom () {
@@ -88,6 +78,13 @@ export default {
     'interval.offset' () {
       this.onRedraw();
     },
+    'interval.firstPoint' () {
+      console.log('FIRSTPOINT', this.interval.firstPoint);
+      // this.onRedraw();
+      if (this.interval.firstPoint > 0) {
+        this.setView(this.intervalStartOffset, this.initExposition);
+      }
+    },
     'initialSize.height' () {
       this._onResize();
     },
@@ -95,10 +92,7 @@ export default {
       this._onResize();
     },
     reloadCounter () {
-      this.average.minTimestamp = 0;
-    },
-    'average.minTimestamp' () {
-      this.setView(this.intervalStartOffset, this.initExposition);
+      this.interval.firstPoint = 0;
     }
   },
   created () {
@@ -158,9 +152,11 @@ export default {
         offset = 0;
       } else if (offset > this.interval.width - this.exposition) {
         offset = this.interval.width - this.exposition;
-      } else if (offset < this.interval.firstPoint) {
+      }
+      if (offset < this.interval.firstPoint) {
         offset = this.interval.firstPoint;
       }
+      console.log('REBASE', offset, this.interval.firstPoint);
       return Math.floor(offset);
     },
     setView (offset = this.interval.offset, exposition = this.exposition) {

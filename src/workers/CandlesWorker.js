@@ -280,13 +280,14 @@ class CandlesWorker {
         rCandle.x = x;
         result.candles.push(rCandle);
       }
-    } else {
+    } else if (!this.params.dataRequestPending) {
+      this.params.dataRequestPending = true;
       this.sendMessage('NEED_DATA', {offset: offset, exposition: this.params.defaultExposition, resolution: theCase});
-      this.data.lastResolution = theCase;
-      return false;
+      // this.data.lastResolution = theCase;
+      // return false;
     }
     if (this.data.start > 0 && this.data.start <= offset) {
-    } else if (!this.params.dataRequestPending) {
+    } else if (!this.params.dataRequestPending && offset > this.params.firstTimestamp) {
       this.params.dataRequestPending = true;
       this.sendMessage('NEED_DATA', {offset: offset, exposition: this.params.defaultExposition, resolution: theCase});
     }
@@ -298,7 +299,7 @@ class CandlesWorker {
       let dataLength = this.averageData.length;
       let step = (viewWidth) / this.averageData.length;
       let result = {
-        minTimestamp: this.averageData[0].date,
+        minTimestamp: this.averageData[0].date - 86400,
         maxTimestamp: this.averageData[dataLength - 1].date,
         path: []
       };

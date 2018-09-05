@@ -57,7 +57,8 @@
   import MixinEventsWheel from './mixins/events-wheel';
   import MixinFilters from './mixins/filters';
   import MixinProps from './mixins/props';
-  import MixinWorkers from './mixins/workers';
+  // import MixinWorkers from './mixins/workers';
+  import MixinWorkers from './mixins/BinaryWorker';
   import MixinOptions from './mixins/options';
 
   import AxisX from "./components/Axis/AxisX";
