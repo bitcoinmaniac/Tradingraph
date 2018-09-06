@@ -79,8 +79,6 @@ export default {
       this.onRedraw();
     },
     'interval.firstPoint' () {
-      console.log('FIRSTPOINT', this.interval.firstPoint);
-      // this.onRedraw();
       if (this.interval.firstPoint > 0) {
         this.setView(this.intervalStartOffset, this.initExposition);
       }
@@ -93,6 +91,7 @@ export default {
     },
     reloadCounter () {
       this.interval.firstPoint = 0;
+      this.setView(this.intervalStartOffset, this.initExposition);
     }
   },
   created () {
@@ -156,7 +155,6 @@ export default {
       if (offset < this.interval.firstPoint) {
         offset = this.interval.firstPoint;
       }
-      console.log('REBASE', offset, this.interval.firstPoint);
       return Math.floor(offset);
     },
     setView (offset = this.interval.offset, exposition = this.exposition) {

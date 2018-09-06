@@ -80,12 +80,6 @@ export default {
     },
     availableCandleWidths (value) {
       this.candleWidths = value;
-      this.workers.candlesWorker.postMessage({
-        task: 'SET-PARAMS',
-        params: {
-          candleWidths: this.availableCandleWidths
-        }
-      });
       this.zoom.value = this.rebaseZoom(this.zoom.value);
       if ('onRedraw' in this) {
         this.onRedraw();
