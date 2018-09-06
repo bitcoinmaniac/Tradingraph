@@ -35,7 +35,7 @@ export default {
   mounted () {
     let binaryWorker = new BinaryWorker();
     binaryWorker.onmessage = this.onBinaryWorkerMessage;
-    binaryWorker.redraw = this.renderCandles;
+    binaryWorker.redraw = this.render;
     this.workers.binaryWorker = binaryWorker;
     this.workers.binaryWorker.requestedParams = [];
   },
@@ -95,6 +95,10 @@ export default {
         }
         default: break;
       }
+    },
+    render () {
+      this.renderCandles();
+      this.renderAverage();
     },
     renderCandles () {
       if (this.chart.width && this.chart.height) {

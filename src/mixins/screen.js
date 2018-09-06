@@ -132,9 +132,6 @@ export default {
       }
       if ('onRedraw' in this) {
         this.onRedraw();
-        if (this.workers.binaryWorker) {
-          this.renderAverage();
-        }
       }
     },
     _rebaseZoomByParams (params, zoom) {

@@ -1,5 +1,5 @@
 <template>
-  <svg style="width: 100%" :view-box.camel="[0, 0, width, height]"
+  <svg :view-box.camel="[0, 0, width, height]"
        @mousedown.prevent="_onMixinMouse"
        @mousemove.prevent="moveHandler"
        @mouseup.prevent="_onMixinMouse"
@@ -58,6 +58,10 @@
       maxZoom: {
         type: Number,
         required: false
+      },
+      width: {
+        type: Number,
+        required: false
       }
     },
     data () {
@@ -74,7 +78,6 @@
           left: 10,
           right: 10
         },
-        width: 0,
         startCenterDiff: 0,
         startExposition: 0,
         expositionLimit: false,
@@ -159,12 +162,6 @@
         this.computeGrabStyle(this.eventsMouse.scrolling.layerX);
       }
     },
-    created () {
-      window.addEventListener('resize', this.onResize);
-    },
-    mounted () {
-      this.onResize();
-    },
     methods: {
       isLeft (x) {
         return x >= this.leftX - 2 * this.handleWidth && x <= this.leftX;
@@ -245,13 +242,7 @@
         this.expositionLimitRight = false;
         this.expositionLimit = !(exposition < this.maxExposition && exposition > this.minExposition);
         return !this.expositionLimit;
-      },
-      onResize () {
-        this.width = this.$el.clientWidth || this.$el.parentNode.clientWidth;
       }
-    },
-    beforeDestroy () {
-      window.removeEventListener('resize', this._onResize);
     }
   };
 </script>
