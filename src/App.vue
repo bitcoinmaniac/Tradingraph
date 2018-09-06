@@ -1,49 +1,51 @@
 <template>
   <div>
-    <svg class="crypto-chart"
-         :view-box.camel="[0, 0, width ? width : 0, height ? height : 0]"
-         @mousedown.prevent="_onMixinMouse"
-         @mousemove.prevent="_onMixinMouse"
-         @mouseup.prevent="_onMixinMouse"
-         @mouseleave.prevent="_onMixinMouse"
-         @touchstart.prevent="_onMixinTouch"
-         @touchmove.prevent="_onMixinTouch"
-         @touchend.prevent="_onMixinTouch"
-         @touchcancel.prevent="_onMixinTouch"
-         ref="chart"
-    >
-      <!--main chart group-->
-      <g>
-        <g v-if="interactive.hoverCandle">
-          <text :y="15" :x="8" style="text-anchor: start; font-family: monospace" :font-size="interactiveTool.fontSize"
-                :style="hoverColor(interactive.hoverCandle.open, interactive.hoverCandle.close)">
-            O: {{interactive.hoverCandle.open.toFixed(6)}}
-            H: {{interactive.hoverCandle.high.toFixed(6)}}
-            L: {{interactive.hoverCandle.low.toFixed(6)}}
-            C: {{interactive.hoverCandle.close.toFixed(6)}}
-            Vol: {{interactive.hoverCandle.volume.toFixed(6)}}
-          </text>
-        </g>
-        <g v-if="candles" :transform="`translate(0, ${this.offsets.chartTop})`">
-          <path class="candles-path-positive" :d="positiveCandlesPath"/>
-          <path class="candles-path-negative" :d="negativeCandlesPath"/>
-          <path class="candles-path-volume" :d="volumeCandlesPath"/>
+    <div>
+      <svg class="crypto-chart"
+           :view-box.camel="[0, 0, width ? width : 0, height ? height : 0]"
+           @mousedown.prevent="_onMixinMouse"
+           @mousemove.prevent="_onMixinMouse"
+           @mouseup.prevent="_onMixinMouse"
+           @mouseleave.prevent="_onMixinMouse"
+           @touchstart.prevent="_onMixinTouch"
+           @touchmove.prevent="_onMixinTouch"
+           @touchend.prevent="_onMixinTouch"
+           @touchcancel.prevent="_onMixinTouch"
+           ref="chart"
+      >
+        <!--main chart group-->
+        <g>
           <g v-if="interactive.hoverCandle">
-            <path class="candles-path-volume hover"
-                  :d="candles.volumePath[interactive.hoverCandle.volumePathIndex]"/>
-            <path v-if="interactive.hoverCandle.class == 'negative'" class="candles-path-negative hover"
-                  :d="candles.candlesNegativePath[interactive.hoverCandle.candlePathIndex]"/>
-            <path v-else-if="interactive.hoverCandle.class == 'positive'" class="candles-path-positive hover"
-                  :d="candles.candlesPositivePath[interactive.hoverCandle.candlePathIndex]"/>
+            <text :y="15" :x="8" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="interactiveTool.fontSize"
+                  :style="hoverColor(interactive.hoverCandle.open, interactive.hoverCandle.close)">
+              O: {{interactive.hoverCandle.open.toFixed(6)}}
+              H: {{interactive.hoverCandle.high.toFixed(6)}}
+              L: {{interactive.hoverCandle.low.toFixed(6)}}
+              C: {{interactive.hoverCandle.close.toFixed(6)}}
+              Vol: {{interactive.hoverCandle.volume.toFixed(6)}}
+            </text>
           </g>
+          <g v-if="candles" :transform="`translate(0, ${this.offsets.chartTop})`">
+            <path class="candles-path-positive" :d="positiveCandlesPath"/>
+            <path class="candles-path-negative" :d="negativeCandlesPath"/>
+            <path class="candles-path-volume" :d="volumeCandlesPath"/>
+            <g v-if="interactive.hoverCandle">
+              <path class="candles-path-volume hover"
+                    :d="candles.volumePath[interactive.hoverCandle.volumePathIndex]"/>
+              <path v-if="interactive.hoverCandle.class == 'negative'" class="candles-path-negative hover"
+                    :d="candles.candlesNegativePath[interactive.hoverCandle.candlePathIndex]"/>
+              <path v-else-if="interactive.hoverCandle.class == 'positive'" class="candles-path-positive hover"
+                    :d="candles.candlesPositivePath[interactive.hoverCandle.candlePathIndex]"/>
+            </g>
+          </g>
+          <axis-y :candles="candles" :chart-height="chart.height" :chart-width="chart.width" :chart-offset="offsets.chartTop"/>
+          <axis-x :chart-height="chart.height" :chart-width="chart.width" :time-parts="zoom.time_parts" :exposition="exposition"
+                  :offset="interval.offset" :dpi="dpi" :candleWidth="candles && candles.width || 3" :chart-offset="offsets.chartBottom"/>
+          <crosshair :chart-height="chart.height" :chart-width="chart.width"
+                     :chart-offset="offsets.chartTop" :candles="candles" :interactive="interactive" />
         </g>
-        <axis-y :candles="candles" :chart-height="chart.height" :chart-width="chart.width" :chart-offset="offsets.chartTop"/>
-        <axis-x :chart-height="chart.height" :chart-width="chart.width" :time-parts="zoom.time_parts" :exposition="exposition"
-                :offset="interval.offset" :dpi="dpi" :candleWidth="candles && candles.width || 3" :chart-offset="offsets.chartBottom"/>
-        <crosshair :chart-height="chart.height" :chart-width="chart.width"
-                   :chart-offset="offsets.chartTop" :candles="candles" :interactive="interactive" />
-      </g>
-    </svg>
+      </svg>
+    </div>
     <navigator :width="chart.width" :average="average" :offset="interval.offset" :exposition="exposition"
                @handler="onHandle" :minZoom="minZoom" :maxZoom="maxZoom"/>
   </div>
@@ -133,8 +135,9 @@
     },
     methods: {
       onRedraw() {
-        for (let worker in this.workers)
+        for (let worker in this.workers) {
           this.workers[worker].redraw();
+        }
       },
       onClick (params) {
         this.interactive.cursorX = params.x;
@@ -156,7 +159,7 @@
         }
       },
       hoverColor (open, close) {
-        return `stroke: ${open > close ? 'rgba(211, 47, 47, 0.8)' : 'rgba(104, 159, 56, 0.8)'}`;
+        return `fill: ${open > close ? 'rgba(211, 47, 47, 0.8)' : 'rgba(104, 159, 56, 0.8)'}`;
       }
     }
   };

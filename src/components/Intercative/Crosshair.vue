@@ -3,11 +3,11 @@
     <path class="cross" :d="crossPath"/>
     <g class="price-label" :transform="`translate(${chartWidth}, ${realY})`">
       <path d="M-70 -10 L0 -10 L0 0 L0 10 L-70 10"/>
-      <text x="-6" :y="4" :font-size="10">{{currentPrice | price}}</text>
+      <text x="-6" :y="4" :font-size="10" style="font-family: 'Roboto', monospace">{{currentPrice | price}}</text>
     </g>
     <g class="moment-label" :transform="`translate(${interactive.cursorX}, ${chartHeight})`">
       <path d="M-50 0 L50 0 L50 24 L-50 24"/>
-      <text :y="15" :font-size="10">{{interactive.hoverCandle.timestamp | moment}}
+      <text :y="15" :font-size="10" style="font-family: 'Roboto', monospace">{{interactive.hoverCandle.timestamp | moment}}
       </text>
     </g>
   </g>
