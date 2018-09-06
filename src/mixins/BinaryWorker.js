@@ -9,7 +9,7 @@ export default {
   watch: {
     requestedParams: {
       handler () {
-        console.log('requestedParams', this.requestedParams);
+        // console.log('requestedParams', this.requestedParams);
         let availableParams = this.findRequestedParam(this.requestedParams, this.workers.binaryWorker.requestedParams);
         if (availableParams.length) {
           let task = 'SET_PARAMS';
@@ -29,7 +29,7 @@ export default {
       });
     },
     reloadCounter () {
-      console.log('RELOAD');
+      // console.log('RELOAD');
       this.workers.binaryWorker.postMessage({task: 'RELOAD'});
     }
   },

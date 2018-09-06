@@ -23,7 +23,7 @@ class BinaryDataWorker {
     this.params = {
       empty: false,
       candleWidths: [],
-      defaultExposition: 30,
+      defaultExposition: 86400 * 30,
       fileSizes: {},
       resolutions: [],
       packetSize: 0,
@@ -67,12 +67,12 @@ class BinaryDataWorker {
   initialLoading (resolution) {
     let end = this.params.fileSizes[resolution];
     let exposition = this.rebaseExposition(end, end);
-    let offset = this.rebaseOffset(end - exposition, end);
-    this.params.dataRequestPending = true;
+    let offset = this.rebaseOffset(end - exposition, resolution);
     this.params.isInitialLoading = true;
     this.requestData(offset, end - 1, resolution);
   }
-  rebaseOffset (offset, dataLength) {
+  rebaseOffset (offset, resolution) {
+    let dataLength = this.params.fileSizes[resolution];
     if (offset < 0) {
       return 0
     } else if (offset > (dataLength - 1)) {
@@ -198,8 +198,15 @@ class BinaryDataWorker {
       }
     }
   }
-  convertExpositionToPackage (exposition, resolution) {
-    return this.rebaseExposition(Math.round(exposition / resolution) * this.params.packetSize, resolution);
+  convertTimestampToPackage (timestamp, resolution) {
+    return Math.ceil(timestamp / resolution) * this.params.packetSize;
+  }
+  convertOffsetToPackage (offset, resolution) {
+    let lastPointTimestamp = (new Date()).getTime() / 1e3;
+    let offsetFromEnd = lastPointTimestamp - (offset - this.params.defaultExposition);
+    let convertedOffset = this.convertTimestampToPackage(offsetFromEnd, resolution);
+    let fileSize = this.params.fileSizes[resolution];
+    return this.rebaseOffset(fileSize - convertedOffset, resolution)
   }
   /**
    * @description Render candles objects
@@ -226,7 +233,7 @@ class BinaryDataWorker {
     result.width = theCase * koofX;
     let theData = this.data.tree[theCase];
     let start = 0;
-    console.log('RENDER', offset, exposition, viewWidth, viewHeight);
+    // console.log('RENDER', offset, exposition, viewWidth, viewHeight);
     if (theData && this.data.lastResolution === theCase) {
       let stop = theData.length;
       if (offset > this.data.start) {
@@ -298,26 +305,38 @@ class BinaryDataWorker {
         rCandle.x = x;
         result.candles.push(rCandle);
       }
-    } else if (!this.params.dataRequestPending) {
-      this.params.dataRequestPending = true;
+    } else {
       let resolution = this.findAvailableResolution(theCase);
-      // let exposition = this.convertExpositionToPackage(this.data.averageParsed[this.data.averageParsed.length - 1].timestamp - offset, resolution);
       this.requestData(
-        0,
-        this.params.fileSizes[resolution],
+        this.convertOffsetToPackage(offset, resolution),
+        this.params.fileSizes[resolution] - 1,
         resolution
       );
-      this.data.lastResolution = theCase;
-      return false;
+      // let resolution = this.findAvailableResolution(theCase);
+      // let offsetFromFirstPoint = this.rebaseOffset(this.convertTimestampToPackage(offset - this.data.averageParsed[0].timestamp, resolution), resolution);
+      // this.params.dataRequestPending = true;
+      // // let exposition = this.convertExpositionToPackage(this.data.averageParsed[this.data.averageParsed.length - 1].timestamp - offset, resolution);
+      // this.requestData(
+      //   offsetFromFirstPoint,
+      //   this.params.fileSizes[resolution],
+      //   resolution
+      // );
+      // this.data.lastResolution = theCase;
+      // return false;
     }
-    if (this.data.start > 0 && this.data.start <= offset) {
-    } else if (!this.params.dataRequestPending) {
-      this.params.dataRequestPending = true;
+    if (this.data.start > 0 && this.data.start > offset) {
+      // this.params.dataRequestPending = true;
+      // let resolution = this.findAvailableResolution(theCase);
+      // // let exposition = this.convertExpositionToPackage(this.data.averageParsed[this.data.averageParsed.length - 1].timestamp - offset, resolution);
+      // this.requestData(
+      //   0,
+      //   this.params.fileSizes[resolution],
+      //   resolution
+      // );
       let resolution = this.findAvailableResolution(theCase);
-      // let exposition = this.convertExpositionToPackage(this.data.averageParsed[this.data.averageParsed.length - 1].timestamp - offset, resolution);
       this.requestData(
-        0,
-        this.params.fileSizes[resolution],
+        this.convertOffsetToPackage(offset, resolution),
+        this.params.fileSizes[resolution] - 1,
         resolution
       );
     }
@@ -347,14 +366,17 @@ class BinaryDataWorker {
     if (dataLength) {
       let step = (viewWidth) / dataLength;
       let result = {
-        minTimestamp: this.data.averageParsed[0].timestamp,
+        minTimestamp: this.data.averageParsed[0].timestamp - 86400,
         maxTimestamp: this.data.averageParsed[dataLength - 1].timestamp,
         path: []
       };
       let sortedByAverage = this.data.averageParsed.slice().sort((a, b) => {return a.average - b.average;});
       let highest = sortedByAverage[dataLength - 1].average;
       let lowest = sortedByAverage[0].average;
-      let yMultiplyer = viewHeight / (highest - lowest);
+      let yMultiplyer = 0;
+      if (highest !== lowest) {
+        yMultiplyer = viewHeight / (highest - lowest);
+      }
       result.path.push(`M0 ${yMultiplyer * (highest - this.data.averageParsed[0].average)}`);
       for (let i = 1; i < dataLength; i++) {
         result.path.push(`L${step * i} ${yMultiplyer * (highest - this.data.averageParsed[i].average)}`);
@@ -363,8 +385,11 @@ class BinaryDataWorker {
     }
   }
   requestData(offset = this.data.last.offset, end = this.data.last.end, resolution = this.data.last.resolution) {
-    Object.assign(this.data.last, {offset, end, resolution});
-    this.sendMessage('REQUEST_DATA', {offset, end, resolution});
+    if (!this.params.dataRequestPending && end > 0 && (this.data.last.offset !== offset || this.data.last.end !== end || this.data.last.resolution !== resolution)) {
+      this.params.dataRequestPending = true;
+      Object.assign(this.data.last, {offset, end, resolution});
+      this.sendMessage('REQUEST_DATA', {offset, end, resolution});
+    }
   }
   /**
    * @description Apply params for render
