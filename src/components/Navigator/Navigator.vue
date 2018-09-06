@@ -37,7 +37,11 @@
         default: 50
       },
       average: {
-        required: true
+        required: true,
+        default: {
+          average: [],
+          minTimestamp: 0
+        }
       },
       offset: {
         type: Number,
@@ -94,13 +98,17 @@
         return this.average.path && this.average.path.join(' ') || '';
       },
       xMultiplier () {
-        return this.width / ((new Date()).getTime() / 1e3 - this.average.minTimestamp);
+        if (this.width && this.average.minTimestamp) {
+          return this.width / ((new Date()).getTime() / 1e3 - this.average.minTimestamp);
+        } else {
+          return 1;
+        }
       },
       leftX () {
         if (this.eventsMouse.scrolling.isScrolling) {
           return this.fixed.left;
         } else {
-          this.fixed.left = (this.offset - this.average.minTimestamp) * this.xMultiplier;
+          this.fixed.left = (this.offset - this.average.minTimestamp || 0) * this.xMultiplier;
           return this.fixed.left;
         }
       },
@@ -108,7 +116,7 @@
         if (this.eventsMouse.scrolling.isScrolling) {
           return this.fixed.right;
         } else {
-          this.fixed.right = (this.offset + this.exposition - this.average.minTimestamp) * this.xMultiplier;
+          this.fixed.right = (this.offset + this.exposition - this.average.minTimestamp || 0) * this.xMultiplier;
           return this.fixed.right;
         }
       },
