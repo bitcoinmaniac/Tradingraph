@@ -7,12 +7,17 @@ class BinaryDataWorker {
       treeReady: false,
       rawBinary: [],
       rawParsed: [],
-      rawAverageBinary: [],
-      rawAverageParsed: [],
+      averageBinary: [],
+      averageParsed: [],
       firstEntry: 0,
       lastResolution: 0,
       start: null,
       width: null,
+      last: {
+        offset: 0,
+        end: 0,
+        resolution: 0
+      },
       tree: []
     };
     this.params = {
@@ -23,9 +28,35 @@ class BinaryDataWorker {
       resolutions: [],
       packetSize: 0,
       dataRequestPending: false,
-      isInitialLoading: false
+      isInitialLoading: true
     };
     this.requestInitialParams();
+  }
+  resetData () {
+    Object.assign(this.data, {
+      treeReady: false,
+      rawBinary: [],
+      rawParsed: [],
+      averageBinary: [],
+      averageParsed: [],
+      firstEntry: 0,
+      lastResolution: 0,
+      start: null,
+      width: null,
+      last: {
+        offset: 0,
+        end: 0,
+        resolution: 0
+      },
+      tree: []
+    });
+    Object.assign(this.params, {
+      dataRequestPending: false,
+      isInitialLoading: true,
+      fileSizes: {},
+      resolutions: [],
+      empty: false
+    });
   }
   requestInitialParams () {
     this.sendMessage('REQUEST_PARAMS', {
@@ -39,7 +70,7 @@ class BinaryDataWorker {
     let offset = this.rebaseOffset(end - exposition, end);
     this.params.dataRequestPending = true;
     this.params.isInitialLoading = true;
-    this.sendMessage('REQUEST_DATA', {offset, end: end - 1, resolution});
+    this.requestData(offset, end - 1, resolution);
   }
   rebaseOffset (offset, dataLength) {
     if (offset < 0) {
@@ -59,11 +90,11 @@ class BinaryDataWorker {
     this.data.treeReady = false;
     this.params.dataRequestPending = false;
     this.appendedData = ['candleData'];
-    this.data.rawBinary = data;
+    this.data.rawBinary = data.slice();
     this.data.rawParsed = this.parseChartData(this.data.rawBinary);
     if (this.params.isInitialLoading === true) {
       this.appendedData.push('averageData');
-      this.data.averageBinary = data;
+      this.data.averageBinary = data.slice();
       this.data.averageParsed = this.data.rawParsed.slice();
       this.params.isInitialLoading = false;
     }
@@ -154,6 +185,22 @@ class BinaryDataWorker {
     });
     return caseCandidate;
   }
+  findAvailableResolution (resolution = 86400) {
+    let resolutionQty = this.params.resolutions.length;
+    if (resolution > this.params.resolutions[resolutionQty - 1]) {
+      return this.params.resolutions[resolutionQty - 1];
+    }
+    for (let i = 0, len = resolutionQty; i < len; i++) {
+      if (resolution === this.params.resolutions[i] || (resolution < this.params.resolutions[i] && i === 0)) {
+        return this.params.resolutions[i];
+      } else if (resolution < this.params.resolutions[i] && i > 0) {
+        return this.params.resolutions[i - 1];
+      }
+    }
+  }
+  convertExpositionToPackage (exposition, resolution) {
+    return this.rebaseExposition(Math.round(exposition / resolution) * this.params.packetSize, resolution);
+  }
   /**
    * @description Render candles objects
    * @param {Number} offset     - exposition offset
@@ -175,12 +222,12 @@ class BinaryDataWorker {
       volumePath: []
     };
     let theCase = this.findCandleWidthForUse(exposition, viewWidth);
-    let theData = this.data.tree[theCase];
     let koofX = viewWidth / exposition;
     result.width = theCase * koofX;
+    let theData = this.data.tree[theCase];
     let start = 0;
-    // console.log('RENDER', theData);
-    if (theData /* && this.data.lastResolution === theCase */) {
+    console.log('RENDER', offset, exposition, viewWidth, viewHeight);
+    if (theData && this.data.lastResolution === theCase) {
       let stop = theData.length;
       if (offset > this.data.start) {
         start = -Math.floor((offset - this.data.start) / theCase);
@@ -211,15 +258,26 @@ class BinaryDataWorker {
       if (stop == null) {
         stop = theData.length;
       }
-      let koofY = viewHeight / (result.high - result.low);
-      let koofYV = viewHeight * VOLUME_ZONE / result.maxVolume; // for volume
+      let yFactor = 0;
+      if (result.high !== result.low) {
+        yFactor = viewHeight / (result.high - result.low);
+      } else {
+        yFactor = viewHeight / (result.high * 1.1 - result.low);
+      }
+      let yVolumeFactor = 0;
+      if (result.maxVolume > 0) {
+        yVolumeFactor = viewHeight * VOLUME_ZONE / result.maxVolume;
+      }
       let barHalf = theCase * koofX * 0.25;
       for (let index = start; index < stop; index++) {
         let candle = theData[index];
         let x = (candle.timestamp - offset) * koofX;
-        let pathMainLine = `M${x} ${(result.high - candle.low) * koofY} L${x} ${(result.high - candle.high) * koofY} `;
-        let pathCandleBody = `M${x - barHalf} ${(result.high - candle.close) * koofY} L${x + barHalf} ${(result.high - candle.close) * koofY} ` +
-          `L${x + barHalf} ${(result.high - candle.open) * koofY} L${x - barHalf} ${(result.high - candle.open) * koofY} `;
+        let pathMainLine = `M${x} ${(result.high - candle.low) * yFactor} L${x} ${(result.high - candle.high) * yFactor} `;
+        let pathCandleBody =
+          `M${x - barHalf} ${(result.high - candle.close) * yFactor}
+           L${x + barHalf} ${(result.high - candle.close) * yFactor}
+           L${x + barHalf} ${(result.high - candle.open) * yFactor}
+           L${x - barHalf} ${(result.high - candle.open) * yFactor}`;
         let rCandle = Object.assign({}, candle);
 
         if (candle.open <= candle.close) {
@@ -230,25 +288,59 @@ class BinaryDataWorker {
           rCandle.candlePathIndex = result.candlesNegativePath.push(pathMainLine + pathCandleBody) - 1;
         }
 
-        rCandle.volumePathIndex = result.volumePath.push(`M${x - barHalf} ${viewHeight - candle.volume * koofYV} L${x + barHalf} ${viewHeight - candle.volume * koofYV} ` +
-          `L${x + barHalf} ${viewHeight} L${x - barHalf} ${viewHeight} `) - 1;
+        rCandle.volumePathIndex = result.volumePath.push(
+          `M${x - barHalf} ${viewHeight - candle.volume * yVolumeFactor}
+           L${x + barHalf} ${viewHeight - candle.volume * yVolumeFactor}
+           L${x + barHalf} ${viewHeight}
+           L${x - barHalf} ${viewHeight}`
+        ) - 1;
 
         rCandle.x = x;
         result.candles.push(rCandle);
       }
     } else if (!this.params.dataRequestPending) {
-      // this.params.dataRequestPending = true;
-      // this.sendMessage('REQUEST_DATA', {offset: 0, end: this.params.resolutions[this.params.resolutions.length - 1], resolution: theCase});
-      // this.data.lastResolution = theCase;
-      // return false;
+      this.params.dataRequestPending = true;
+      let resolution = this.findAvailableResolution(theCase);
+      // let exposition = this.convertExpositionToPackage(this.data.averageParsed[this.data.averageParsed.length - 1].timestamp - offset, resolution);
+      this.requestData(
+        0,
+        this.params.fileSizes[resolution],
+        resolution
+      );
+      this.data.lastResolution = theCase;
+      return false;
     }
-    // if (this.data.start > 0 && this.data.start <= offset) {
-    // } else if (!this.params.dataRequestPending && offset > this.params.firstTimestamp) {
-    //   this.params.dataRequestPending = true;
-    //   this.sendMessage('REQUEST_DATA', {offset: offset, end: this.params.resolutions[this.params.resolutions.length - 1], resolution: theCase});
-    // }
+    if (this.data.start > 0 && this.data.start <= offset) {
+    } else if (!this.params.dataRequestPending) {
+      this.params.dataRequestPending = true;
+      let resolution = this.findAvailableResolution(theCase);
+      // let exposition = this.convertExpositionToPackage(this.data.averageParsed[this.data.averageParsed.length - 1].timestamp - offset, resolution);
+      this.requestData(
+        0,
+        this.params.fileSizes[resolution],
+        resolution
+      );
+    }
     this.data.lastResolution = theCase;
     this.sendMessage('RENDERED', { type: 'candles', data: result });
+  }
+  returnEmptyData () {
+    this.sendMessage('RENDERED', {
+      type: 'candles',
+      data: {
+        candles: [],
+        candlesPositivePath: [],
+        candlesNegativePath: [],
+        volumePath: []
+      }
+    });
+    this.sendMessage('RENDERED', {
+      type: 'average',
+      data: {
+        minTimestamp: 0,
+        path: []
+      }
+    });
   }
   renderAverage (viewWidth, viewHeight) {
     let dataLength = this.data.averageParsed.length;
@@ -263,12 +355,16 @@ class BinaryDataWorker {
       let highest = sortedByAverage[dataLength - 1].average;
       let lowest = sortedByAverage[0].average;
       let yMultiplyer = viewHeight / (highest - lowest);
-      result.path.push(`M6 ${yMultiplyer * (highest - this.data.averageParsed[0].average)}`);
+      result.path.push(`M0 ${yMultiplyer * (highest - this.data.averageParsed[0].average)}`);
       for (let i = 1; i < dataLength; i++) {
         result.path.push(`L${step * i} ${yMultiplyer * (highest - this.data.averageParsed[i].average)}`);
       }
       this.sendMessage('RENDERED', { type: 'average', data: result});
     }
+  }
+  requestData(offset = this.data.last.offset, end = this.data.last.end, resolution = this.data.last.resolution) {
+    Object.assign(this.data.last, {offset, end, resolution});
+    this.sendMessage('REQUEST_DATA', {offset, end, resolution});
   }
   /**
    * @description Apply params for render
@@ -276,19 +372,37 @@ class BinaryDataWorker {
    * @return none
    */
   setParams (freshParams) {
-    Object.keys(freshParams).map((param) => {
-      this.params[param] = freshParams[param];
-    });
-    this.data.treeReady = false;
+    if (freshParams.candleWidths && !this.isCandleWidthsTheSame(freshParams.candleWidths)) {
+      Object.assign(this.data, {
+        treeReady: false,
+        rawBinary: [],
+        rawParsed: [],
+        firstEntry: 0,
+        lastResolution: 0,
+        start: null,
+        width: null,
+        tree: []
+      });
+    }
+    Object.assign(this.params, freshParams);
+  }
+  isCandleWidthsTheSame (newCandleWidths) {
+    for (let i = 0, len = newCandleWidths.length; i < len; i++) {
+      if (this.params.candleWidths.indexOf(newCandleWidths[i]) === -1) {
+        return false;
+      }
+    }
+    return true;
   }
   messageHandler (message) {
     switch (message.data.task) {
       case 'SET_PARAMS': {
         this.setParams(message.data.params);
         if (
-          Object.keys(this.params.fileSizes).length > 0 && this.params.resolutions.length > 0 &&
+          !this.data.averageParsed.length && Object.keys(this.params.fileSizes).length > 0 &&
+          this.params.resolutions.length > 0 &&
           this.params.fileSizes[this.params.resolutions[this.params.resolutions.length - 1]] > 0 &&
-          this.params.packetSize && !this.params.dataRequestPending && !this.params.initialLoading
+          this.params.packetSize && !this.params.dataRequestPending
         ) {
           this.initialLoading(this.params.resolutions[this.params.resolutions.length - 1]);
         }
@@ -311,15 +425,15 @@ class BinaryDataWorker {
           }
           default: break;
         }
+        break;
       }
-      // case 'RELOAD': {
-      //   this.params.empty = false;
-      //   this.params.noMoreData = false;
-      //   this.resetData();
-      //   // this.params.dataRequestPending = true;
-      //   this.requestParams();
-      //   break;
-      // }
+      case 'RELOAD': {
+        this.returnEmptyData();
+        this.params.empty = false;
+        this.resetData();
+        this.requestInitialParams();
+        break;
+      }
       default: break;
     }
   }

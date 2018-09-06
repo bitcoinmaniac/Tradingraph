@@ -7,27 +7,30 @@ export default {
     };
   },
   watch: {
-    requestedParams () {
-      let availableParams = this.findRequestedParam(this.requestedParams, this.workers.binaryWorker.requestedParams);
-      if (availableParams.length) {
-        let task = 'SET_PARAMS';
-        let params = {};
-        for (let i = 0, len = availableParams.length; i < len; i++) {
-          params[availableParams[i]] = this.requestedParams[availableParams[i]];
+    requestedParams: {
+      handler () {
+        console.log('requestedParams', this.requestedParams);
+        let availableParams = this.findRequestedParam(this.requestedParams, this.workers.binaryWorker.requestedParams);
+        if (availableParams.length) {
+          let task = 'SET_PARAMS';
+          let params = {};
+          for (let i = 0, len = availableParams.length; i < len; i++) {
+            params[availableParams[i]] = this.requestedParams[availableParams[i]];
+          }
+          this.workers.binaryWorker.postMessage({ task, params });
         }
-        this.workers.binaryWorker.postMessage({ task, params });
-      }
-    },
-    availableCandleWidths () {
-      if (this.availableCandleWidths.length) {
-        this.setCandleWidthsParam(this.availableCandleWidths);
-      }
+      },
+      deep: true
     },
     data () {
       this.workers.binaryWorker.postMessage({
         task: 'APPEND',
         data: this.data
       });
+    },
+    reloadCounter () {
+      console.log('RELOAD');
+      this.workers.binaryWorker.postMessage({task: 'RELOAD'});
     }
   },
   mounted () {
@@ -43,7 +46,7 @@ export default {
         case 'REQUEST_PARAMS': {
           this.workers.binaryWorker.requestedParams = message.data.body.outer;
           this.$emit('requestParams', message.data.body.outer);
-          if (message.data.body.inner.indexOf['candleWidths'] !== -1 && this.availableCandleWidths.length) {
+          if (message.data.body.inner.indexOf['candleWidths'] !== -1) {
             this.setCandleWidthsParam(this.availableCandleWidths);
           }
           break;
@@ -103,6 +106,7 @@ export default {
     },
     renderCandles () {
       if (this.chart.width && this.chart.height) {
+        this.setCandleWidthsParam(this.availableCandleWidths);
         this.workers.binaryWorker.postMessage({
           task: 'RENDER',
           params: {
@@ -125,10 +129,12 @@ export default {
       return availableParams;
     },
     setCandleWidthsParam (candleWidths) {
-      this.workers.binaryWorker.postMessage({
-        task: 'SET_PARAMS',
-        params: { candleWidths }
-      });
+      if (candleWidths.length) {
+        this.workers.binaryWorker.postMessage({
+          task: 'SET_PARAMS',
+          params: { candleWidths }
+        });
+      }
     }
   }
 }
