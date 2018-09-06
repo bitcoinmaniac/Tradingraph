@@ -9,7 +9,6 @@ export default {
   watch: {
     requestedParams: {
       handler () {
-        // console.log('requestedParams', this.requestedParams);
         let availableParams = this.findRequestedParam(this.requestedParams, this.workers.binaryWorker.requestedParams);
         if (availableParams.length) {
           let task = 'SET_PARAMS';
@@ -63,14 +62,7 @@ export default {
                 break;
               }
               case 'averageData': {
-                this.workers.binaryWorker.postMessage({
-                  task: 'RENDER',
-                  params: {
-                    type: 'average',
-                    viewWidth: this.clientWidth,
-                    viewHeight: this.sizes.navigator.height
-                  }
-                });
+                this.renderAverage();
                 break;
               }
               default: break;
@@ -118,6 +110,16 @@ export default {
           }
         });
       }
+    },
+    renderAverage () {
+      this.workers.binaryWorker.postMessage({
+        task: 'RENDER',
+        params: {
+          type: 'average',
+          viewWidth: this.clientWidth,
+          viewHeight: this.sizes.navigator.height
+        }
+      });
     },
     findRequestedParam (newParams, requestedParam) {
       let availableParams = [];

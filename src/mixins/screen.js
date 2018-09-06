@@ -5,6 +5,8 @@ export default {
       width: null,
       clientWidth: null,
       clientHeight: null,
+      offsetTop: null,
+      offsetLeft: null,
       chart: {
         height: 260,
         width: 940,
@@ -102,6 +104,8 @@ export default {
   },
   methods: {
     _onResize () {
+      this.offsetTop = this.$el.offsetTop;
+      this.offsetLeft = this.$el.offsetLeft;
       if (this.width) {
         this.clientWidth = this.$refs.chart.clientWidth || this.$refs.chart.parentNode.clientWidth;
       }
@@ -128,6 +132,9 @@ export default {
       }
       if ('onRedraw' in this) {
         this.onRedraw();
+        if (this.workers.binaryWorker) {
+          this.renderAverage();
+        }
       }
     },
     _rebaseZoomByParams (params, zoom) {

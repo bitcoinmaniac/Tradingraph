@@ -90,12 +90,12 @@ class BinaryDataWorker {
     this.data.treeReady = false;
     this.params.dataRequestPending = false;
     this.appendedData = ['candleData'];
-    this.data.rawBinary = data.slice();
+    this.data.rawBinary = data.slice(0);
     this.data.rawParsed = this.parseChartData(this.data.rawBinary);
     if (this.params.isInitialLoading === true) {
       this.appendedData.push('averageData');
-      this.data.averageBinary = data.slice();
-      this.data.averageParsed = this.data.rawParsed.slice();
+      this.data.averageBinary = data.slice(0);
+      this.data.averageParsed = this.data.rawParsed.slice(0);
       this.params.isInitialLoading = false;
     }
     this.makeTree();
@@ -370,7 +370,7 @@ class BinaryDataWorker {
         maxTimestamp: this.data.averageParsed[dataLength - 1].timestamp,
         path: []
       };
-      let sortedByAverage = this.data.averageParsed.slice().sort((a, b) => {return a.average - b.average;});
+      let sortedByAverage = this.data.averageParsed.slice(0).sort((a, b) => {return a.average - b.average;});
       let highest = sortedByAverage[dataLength - 1].average;
       let lowest = sortedByAverage[0].average;
       let yMultiplyer = 0;

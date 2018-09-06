@@ -10,16 +10,16 @@ export default {
           this.eventsMouse.scrolling.isScrolling = true;
           if ('onClick' in this) {
             this.onClick({
-              x : event.offsetX * this.koofScreenX - this.chart.offset.left,
-              y : event.offsetY * this.koofScreenY - this.offsets.chartTop - this.offsets.chartBottom
+              x : (event.layerX - this.offsetLeft) * this.koofScreenX,
+              y : (event.layerY - this.offsetTop) - this.offsets.chartTop - this.offsets.chartBottom - this.offsetTop * this.koofScreenY
             });
           }
           break;
         case 'mousemove':
           if('onHover' in this) {
             this.onHover({
-              x : event.offsetX * this.koofScreenX - this.chart.offset.left,
-              y : event.offsetY * this.koofScreenY - this.offsets.chartTop - this.offsets.chartBottom
+              x : (event.layerX - this.offsetLeft) * this.koofScreenX,
+              y : (event.layerY - this.offsetTop) * this.koofScreenY - this.offsets.chartTop - this.offsets.chartBottom
             });
           }
           if (this.eventsMouse.scrolling.isScrolling) {
