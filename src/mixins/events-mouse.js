@@ -11,7 +11,7 @@ export default {
           if ('onClick' in this) {
             this.onClick({
               x : (event.layerX - this.offsetLeft) * this.koofScreenX,
-              y : (event.layerY - this.offsetTop) - this.offsets.chartTop - this.offsets.chartBottom - this.offsetTop * this.koofScreenY
+              y : (event.layerY - this.offsetTop) * this.koofScreenY - this.offsets.chartTop - this.offsets.chartBottom
             });
           }
           break;
