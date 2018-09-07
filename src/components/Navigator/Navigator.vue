@@ -1,5 +1,5 @@
 <template>
-  <svg :view-box.camel="[0, 0, width, height]"
+  <svg :view-box.camel="[0, 0, width ? width : 0, height ? height : 0]"
        @mousedown.prevent="_onMixinMouse"
        @mousemove.prevent="moveHandler"
        @mouseup.prevent="_onMixinMouse"
