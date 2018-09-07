@@ -28,7 +28,6 @@ export default {
       });
     },
     reloadCounter () {
-      // console.log('RELOAD');
       this.workers.binaryWorker.postMessage({task: 'RELOAD'});
     }
   },
@@ -55,6 +54,7 @@ export default {
           break;
         }
         case 'APPENDED': {
+          this.isEmpty = false;
           for (let i = 0, len = message.data.body.type.length; i < len; i++) {
             switch (message.data.body.type[i]) {
               case 'candleData': {
@@ -92,6 +92,11 @@ export default {
             }
             default: break;
           }
+          break;
+        }
+        case 'EMPTY': {
+          this.isEmpty = true;
+          break;
         }
         default: break;
       }

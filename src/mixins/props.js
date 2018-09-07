@@ -18,11 +18,6 @@ export default {
       required: true,
       default: {}
     },
-    isEmpty: {
-      type: Boolean,
-      required: false,
-      default: false
-    },
     intervalWidth: {
       type: Number,
       required: false,

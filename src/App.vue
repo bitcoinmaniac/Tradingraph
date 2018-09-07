@@ -14,7 +14,7 @@
            ref="chart"
       >
         <!--main chart group-->
-        <g>
+        <g v-if="!isEmpty">
           <g v-if="interactive.hoverCandle">
             <text :y="15" :x="8" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="interactiveTool.fontSize"
                   :style="hoverColor(interactive.hoverCandle.open, interactive.hoverCandle.close)">
@@ -44,6 +44,11 @@
                   :offset="interval.offset" :dpi="dpi" :candleWidth="candles && candles.width || 3" :chart-offset="offsets.chartBottom"/>
           <crosshair :chart-height="chart.height" :chart-width="chart.width" :fractionLimit="interactive.fraction.limit"
                      :chart-offset="offsets.chartTop" :candles="candles" :interactive="interactive" />
+        </g>
+        <g v-else>
+          <text  :y="height / 2" :x="width / 2" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="14">
+            <slot name="noData">No data</slot>
+          </text>
         </g>
       </svg>
     </div>
@@ -91,6 +96,7 @@
       return {
         chartData: this.data,
         candles: null,
+        isEmpty: false,
         average: [],
         interactive: {
           hoverCandle: null,
