@@ -6,6 +6,12 @@ export default {
       workers: {}
     }
   },
+  props: {
+    dataAverage: {
+      type: Array,
+      required: true
+    }
+  },
   mounted () {
     this.workerInitialize();
   },

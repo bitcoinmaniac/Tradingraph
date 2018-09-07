@@ -13,10 +13,6 @@ export default {
       type: [Array, ArrayBuffer],
       required: true
     },
-    dataAverage: {
-      type: Array,
-      required: true
-    },
     requestedParams: {
       type: Object,
       required: true,

@@ -122,7 +122,7 @@ export default {
       } else {
         this.height = this.clientHeight;
       }
-      this.chart.width = this.width - this.chart.offset.left - this.koofScreenX * 2;
+      this.chart.width = this.width;
       this.chart.height = this.height - this.offsets.chartTop - this.offsets.chartBottom;
       if (!this.clientWidth && !this.clientHeight) {
         this.$nextTick(() => {

@@ -18,11 +18,11 @@
           <g v-if="interactive.hoverCandle">
             <text :y="15" :x="8" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="interactiveTool.fontSize"
                   :style="hoverColor(interactive.hoverCandle.open, interactive.hoverCandle.close)">
-              O: {{interactive.hoverCandle.open.toFixed(6)}}
-              H: {{interactive.hoverCandle.high.toFixed(6)}}
-              L: {{interactive.hoverCandle.low.toFixed(6)}}
-              C: {{interactive.hoverCandle.close.toFixed(6)}}
-              Vol: {{interactive.hoverCandle.volume.toFixed(6)}}
+              O: {{interactive.hoverCandle.open.toFixed(interactive.fraction.limit)}}
+              H: {{interactive.hoverCandle.high.toFixed(interactive.fraction.limit)}}
+              L: {{interactive.hoverCandle.low.toFixed(interactive.fraction.limit)}}
+              C: {{interactive.hoverCandle.close.toFixed(interactive.fraction.limit)}}
+              Vol: {{interactive.hoverCandle.volume.toFixed(interactive.fraction.nominal)}}
             </text>
           </g>
           <g v-if="candles" :transform="`translate(0, ${this.offsets.chartTop})`">
@@ -38,15 +38,16 @@
                     :d="candles.candlesPositivePath[interactive.hoverCandle.candlePathIndex]"/>
             </g>
           </g>
-          <axis-y :candles="candles" :chart-height="chart.height" :chart-width="chart.width" :chart-offset="offsets.chartTop"/>
+          <axis-y :candles="candles" :chart-height="chart.height" :chart-width="chart.width" :chart-offset="offsets.chartTop"
+                  :fractionLimit="interactive.fraction.limit"/>
           <axis-x :chart-height="chart.height" :chart-width="chart.width" :time-parts="zoom.time_parts" :exposition="exposition"
                   :offset="interval.offset" :dpi="dpi" :candleWidth="candles && candles.width || 3" :chart-offset="offsets.chartBottom"/>
-          <crosshair :chart-height="chart.height" :chart-width="chart.width"
+          <crosshair :chart-height="chart.height" :chart-width="chart.width" :fractionLimit="interactive.fraction.limit"
                      :chart-offset="offsets.chartTop" :candles="candles" :interactive="interactive" />
         </g>
       </svg>
     </div>
-    <navigator :width="chart.width" :average="average" :offset="interval.offset" :exposition="exposition"
+    <navigator :width="clientWidth" :average="average" :offset="interval.offset" :exposition="exposition"
                @handler="onHandle" :minZoom="minZoom" :maxZoom="maxZoom"/>
   </div>
 </template>
@@ -94,7 +95,11 @@
         interactive: {
           hoverCandle: null,
           cursorX: 0,
-          cursorY: 0
+          cursorY: 0,
+          fraction: {
+            limit: 4,
+            nominal: 4
+          }
         },
         interactiveTool: {
           fontSize: 10
@@ -131,6 +136,21 @@
       },
       fontSizeAxisX() {
         return this.fontHeight > (this.clientWidth / 16) ? this.clientWidth / 16 : this.fontHeight;
+      }
+    },
+    watch: {
+      settings: {
+        handler () {
+          if (this.settings.interactiveTool && this.settings.interactiveTool.fraction) {
+            Object.assign(this.interactive.fraction, this.settings.interactiveTool.fraction);
+          }
+        },
+        deep: true
+      }
+    },
+    created () {
+      if (this.settings.interactiveTool && this.settings.interactiveTool.fraction) {
+        Object.assign(this.interactive.fraction, this.settings.interactiveTool.fraction);
       }
     },
     methods: {

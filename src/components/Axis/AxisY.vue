@@ -2,7 +2,7 @@
   <g>
     <g v-for="price in axisY" :transform="`translate(0, ${price.y + chartOffset})`">
       <line x1="0" :x2="chartWidth" class="axis-x" opacity="0.1"></line>
-      <text :x="chartWidth" y="-4" font-size="10" text-anchor='end' style="font-family: 'Roboto', monospace"> {{price.price | price}} </text>
+      <text :x="chartWidth" y="-4" font-size="10" text-anchor='end' style="font-family: 'Roboto', monospace"> {{price.price | price(fractionLimit)}} </text>
     </g>
   </g>
 </template>
@@ -27,6 +27,11 @@
       chartOffset: {
         type: Number,
         required: true
+      },
+      fractionLimit: {
+        type: Number,
+        required: false,
+        default: 4
       }
     },
     computed: {
