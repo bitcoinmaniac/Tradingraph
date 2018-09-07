@@ -144,6 +144,9 @@
           if (this.settings.interactiveTool && this.settings.interactiveTool.fraction) {
             Object.assign(this.interactive.fraction, this.settings.interactiveTool.fraction);
           }
+          if (this.settings.interactiveTool && this.settings.interactiveTool.fontSize) {
+            this.interactiveTool.fontSize = this.settings.interactiveTool.fontSize;
+          }
         },
         deep: true
       }
@@ -151,6 +154,9 @@
     created () {
       if (this.settings.interactiveTool && this.settings.interactiveTool.fraction) {
         Object.assign(this.interactive.fraction, this.settings.interactiveTool.fraction);
+      }
+      if (this.settings.interactiveTool && this.settings.interactiveTool.fontSize) {
+        this.interactiveTool.fontSize = this.settings.interactiveTool.fontSize;
       }
     },
     methods: {

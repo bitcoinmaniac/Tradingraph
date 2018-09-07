@@ -76,9 +76,11 @@ export default {
   watch: {
     'zoom.value' () {
       this.onRedraw();
+      this.sendOffsetAndExposition(this.interval.offset, this.exposition);
     },
     'interval.offset' () {
       this.onRedraw();
+      this.sendOffsetAndExposition(this.interval.offset, this.exposition);
     },
     'interval.firstPoint' () {
       if (this.interval.firstPoint > 0) {
@@ -151,6 +153,9 @@ export default {
       );
     },
     _rebaseOffset (offset) {
+      if (offset < 1) {
+        offset = this.interval.width * (1 - offset);
+      }
       if (offset < 0) {
         offset = 0;
       } else if (offset > this.interval.width - this.exposition) {
@@ -183,6 +188,11 @@ export default {
           break;
         }
         default: break;
+      }
+    },
+    sendOffsetAndExposition (offset, exposition) {
+      if (this.interval.firstPoint > 0 && this.interval.width > 0 && offset !== this.intervalStartOffset || exposition !== this.initExposition) {
+        this.$emit('lastLocationInfo', offset, exposition, this.interval.firstPoint, this.interval.width);
       }
     }
   },

@@ -91,16 +91,6 @@ export default {
     data (value) {
       this.chartData = value;
       return {}
-    },
-    settings () {
-      if (this.settings.interactiveTool.fontSize) {
-        this.interactiveTool.fontSize = this.settings.interactiveTool.fontSize;
-      }
-    }
-  },
-  mounted () {
-    if (this.settings && this.settings.interactiveTool && this.settings.interactiveTool.fontSize) {
-      this.interactiveTool.fontSize = this.settings.interactiveTool.fontSize;
     }
   }
 };
