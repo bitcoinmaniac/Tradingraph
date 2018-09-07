@@ -432,7 +432,7 @@ class BinaryDataWorker {
           this.initialLoading(this.params.resolutions[this.params.resolutions.length - 1]);
         } else if (
           !this.data.averageParsed.length && Object.keys(this.params.fileSizes).length > 0 && this.params.resolutions.length > 0 &&
-          this.params.fileSizes[this.params.resolutions[this.params.resolutions.length - 1]] === -1)
+          this.params.fileSizes[this.params.resolutions[this.params.resolutions.length - 1]] === 0)
         {
           this.sendMessage('EMPTY');
         }
