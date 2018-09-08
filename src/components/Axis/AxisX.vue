@@ -83,10 +83,10 @@
 
         if (!timePart) {
           timePart = this.timeParts[this.timeParts.length - 1] || 1;
-          let numOfPoints = this.exposition / timePart;
-          if (numOfPoints > this.availableParts) {
-            timePart = Math.ceil((this.exposition / this.availableParts) / timePart) * timePart;
-          }
+        }
+        let numOfPoints = this.exposition / timePart;
+        if (numOfPoints > this.availableParts) {
+          timePart = Math.ceil((this.exposition / this.availableParts) / timePart) * timePart;
         }
 
         for (

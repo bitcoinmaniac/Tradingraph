@@ -48,11 +48,6 @@ export default {
       required: false,
       default: 0
     },
-    params: {
-      type: Object,
-      required: false,
-      default: {}
-    },
     minCandleWidth: {
       type: Number,
       required: false,
