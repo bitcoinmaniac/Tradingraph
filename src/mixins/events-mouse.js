@@ -1,33 +1,42 @@
 export default {
   methods: {
     _onMixinMouse(event) {
+      let offsets = this.$el.getBoundingClientRect();
+      let additionalOffsetsY = 0;
+      if (this.offsets && this.offsets.chartTop && this.offsets.chartBottom) {
+        additionalOffsetsY = this.offsets.chartTop + this.offsets.chartBottom;
+      }
       switch(event.type){
         case 'mousedown':
           this.eventsMouse.scrolling.clientX = event.clientX;
           this.eventsMouse.scrolling.clientY = event.clientY;
+          this.eventsMouse.scrolling.clientXWithOffset = event.clientX - offsets.left;
+          this.eventsMouse.scrolling.clientYWithOffset = event.clientY - offsets.top;
           this.eventsMouse.scrolling.layerX = event.layerX;
           this.eventsMouse.scrolling.layerY = event.layerY;
           this.eventsMouse.scrolling.isScrolling = true;
           if ('onClick' in this) {
             this.onClick({
-              x : (event.layerX - this.offsetLeft) * this.koofScreenX,
-              y : (event.layerY - this.offsetTop) * this.koofScreenY - this.offsets.chartTop - this.offsets.chartBottom
+              x : event.clientX - offsets.left,
+              y : event.clientY - offsets.top - additionalOffsetsY
             });
           }
           break;
         case 'mousemove':
           if('onHover' in this) {
             this.onHover({
-              x : (event.layerX - this.offsetLeft) * this.koofScreenX,
-              y : (event.layerY - this.offsetTop) * this.koofScreenY - this.offsets.chartTop - this.offsets.chartBottom
+              x : event.clientX - offsets.left,
+              y : event.clientY - offsets.top - additionalOffsetsY
             });
           }
           if (this.eventsMouse.scrolling.isScrolling) {
-            this.eventsMouse.scrolling.power = (this.eventsMouse.scrolling.clientX - event.clientX) * this.koofScreenX;
+            this.eventsMouse.scrolling.power = (this.eventsMouse.scrolling.clientX - event.clientX);
             this.eventsMouse.scrolling.clientX = event.clientX;
             this.eventsMouse.scrolling.layerX = event.layerX;
             if ('onSwipe' in this) {
               this.onSwipe({
+                x : event.clientX - offsets.left,
+                y : event.clientY - offsets.top - additionalOffsetsY,
                 offsetX : this.eventsMouse.scrolling.power / this.dpi,
                 offsetY : 0
               }, event);

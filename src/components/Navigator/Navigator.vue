@@ -1,7 +1,7 @@
 <template>
   <svg :view-box.camel="[0, 0, width ? width : 0, height ? height : 0]"
        @mousedown.prevent="_onMixinMouse"
-       @mousemove.prevent="moveHandler"
+       @mousemove.prevent="_onMixinMouse"
        @mouseup.prevent="_onMixinMouse"
        @mouseleave.prevent="_onMixinMouse"
        @touchstart.prevent="_onMixinTouch"
@@ -12,7 +12,7 @@
     <line x1="0" :x2="width" stroke="black" opacity="0.3"/>
     <g :transform="navigatotScale">
       <g :transform="navigatorPathScale">
-        <path class="candles-path-volume" fill="transparent" stroke="rgba(21,101,192,0.8)" :d="navigatorPath"/>
+        <path fill="transparent" stroke="rgba(21,101,192,0.8)" :d="navigatorPath"/>
       </g>
       <g>
         <path fill="rgba(21,101,192,0.8)" stroke="1" :class="{'please-stop-handle': expositionLimitLeft}" :d="left"/>
@@ -136,15 +136,15 @@
       },
       isLeftHandle () {
         return this.lastHandle !== this.HANDLES.CENTER && this.lastHandle !== this.HANDLES.RIGHT &&
-          this.isLeft(this.eventsMouse.scrolling.layerX) || this.lastHandle === this.HANDLES.LEFT;
+          this.isLeft(this.eventsMouse.scrolling.clientXWithOffset) || this.lastHandle === this.HANDLES.LEFT;
       },
       isCenterHandle () {
         return this.lastHandle !== this.HANDLES.LEFT && this.lastHandle !== this.HANDLES.RIGHT &&
-          this.isCenter(this.eventsMouse.scrolling.layerX) || this.lastHandle === this.HANDLES.CENTER;
+          this.isCenter(this.eventsMouse.scrolling.clientXWithOffset) || this.lastHandle === this.HANDLES.CENTER;
       },
       isRightHandle () {
         return this.lastHandle !== this.HANDLES.LEFT && this.lastHandle !== this.HANDLES.CENTER &&
-          this.isRight(this.eventsMouse.scrolling.layerX) || this.lastHandle === this.HANDLES.RIGHT
+          this.isRight(this.eventsMouse.scrolling.clientXWithOffset) || this.lastHandle === this.HANDLES.RIGHT
       },
       maxExposition () {
         return ((new Date()).getTime() / 1e3) / this.minZoom
@@ -159,7 +159,7 @@
         this.expositionLimit = false;
         this.expositionLimitRight = false;
         this.expositionLimitLeft = false;
-        this.computeGrabStyle(this.eventsMouse.scrolling.layerX);
+        this.computeGrabStyle(this.eventsMouse.scrolling.clientXWithOffset);
       }
     },
     methods: {
@@ -181,45 +181,44 @@
           this.grabStyle.cursor = 'default';
         }
       },
-      moveHandler (event) {
-        this.computeGrabStyle(event.layerX);
-        this._onMixinMouse(event);
+      onHover (event) {
+        this.computeGrabStyle(event.x);
       },
-      onSwipe (notInteresting, event) {
-        if (this.isLeftHandle) {
+      onSwipe (event) {
+        if (event.x && this.isLeftHandle) {
           this.grabStyle.cursor = 'ew-resize';
           this.lastHandle = this.HANDLES.LEFT;
-          let offset = this.convertCurrentX(event.layerX);
-          let exposition = (this.rightX - event.layerX) / this.xMultiplier;
-          if (this.isExpositionValid(exposition) && this.checkForLeftEdge(offset, exposition) && event.layerX < this.rightX) {
+          let offset = this.convertCurrentX(event.x);
+          let exposition = (this.rightX - event.x) / this.xMultiplier;
+          if (this.isExpositionValid(exposition) && this.checkForLeftEdge(offset, exposition) && event.x < this.rightX) {
             this.expositionLimitLeft = false;
-            this.fixed.left = event.layerX;
+            this.fixed.left = event.x;
             this.$emit('handler', {offset, exposition}, 'left');
           } else {
             this.expositionLimitLeft = true;
           }
-        } else if (this.isRightHandle) {
+        } else if (event.x && this.isRightHandle) {
           this.grabStyle.cursor = 'ew-resize';
           this.lastHandle = this.HANDLES.RIGHT;
           let offset = this.average.minTimestamp + this.leftX / this.xMultiplier;
-          let exposition = this.convertCurrentX(event.layerX) - offset;
-          if (this.isExpositionValid(exposition) && this.checkForRightEdge(offset) && event.layerX > this.leftX) {
+          let exposition = this.convertCurrentX(event.x) - offset;
+          if (this.isExpositionValid(exposition) && this.checkForRightEdge(offset) && event.x > this.leftX) {
             this.expositionLimitRight = false;
-            this.fixed.right = event.layerX;
+            this.fixed.right = event.x;
             this.$emit('handler', {offset, exposition}, 'right');
           } else {
             this.expositionLimitRight = true;
           }
-        } else if (this.isCenterHandle) {
+        } else if (event.x && this.isCenterHandle) {
           this.grabStyle.cursor = 'grabbing';
           if (!this.lastHandle) {
-            this.startCenterDiff = this.leftX - event.layerX;
+            this.startCenterDiff = this.leftX - event.x;
             this.startExposition = this.fixed.right - this.fixed.left;
           }
           this.lastHandle = this.HANDLES.CENTER;
-          let offset = this.convertCurrentX(event.layerX, this.startCenterDiff);
+          let offset = this.convertCurrentX(event.x, this.startCenterDiff);
           if (this.checkForRightEdge(offset, this.startExposition / this.xMultiplier) && this.checkForLeftEdge(offset)) {
-            this.fixed.left = event.layerX + this.startCenterDiff;
+            this.fixed.left = event.x + this.startCenterDiff;
             this.fixed.right = this.fixed.left + this.startExposition;
             this.$emit('handler', {offset}, 'center');
           }
