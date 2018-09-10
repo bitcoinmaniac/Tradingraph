@@ -3,6 +3,8 @@
     <div>
       <svg class="crypto-chart"
            :view-box.camel="[0, 0, width ? width : 0, height ? height : 0]"
+           :width="width ? width : 0"
+           :height="height ? height : 0"
            @mousedown.prevent="_onMixinMouse"
            @mousemove.prevent="_onMixinMouse"
            @mouseup.prevent="_onMixinMouse"
