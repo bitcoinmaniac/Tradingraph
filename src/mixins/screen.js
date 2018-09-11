@@ -55,7 +55,13 @@ export default {
       return this.zoom.time_parts[0];
     },
     minExposition () {
-      return this.minPart * 10 > 86400 ? this.minPart * 10 : 86400;
+      let wholeExposition = this.interval.width;
+      let minExposition = this.minPart * 10;
+      if (this.interval.firstPoint > 0) {
+        wholeExposition = this.interval.width - this.interval.firstPoint;
+        minExposition = wholeExposition < minExposition ? wholeExposition : minExposition
+      }
+      return minExposition > 86400 ? minExposition : 86400;
     },
     maxExposition () {
       let maxCandleWidth = this.availableCandleWidths[this.availableCandleWidths.length - 1];
