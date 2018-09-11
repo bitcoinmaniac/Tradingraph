@@ -74,7 +74,7 @@ export default {
             task: 'RENDER_AVERAGE',
             offset: this.interval.offset,
             exposition: this.exposition,
-            viewWidth: this.clientWidth,
+            viewWidth: this.width,
             viewHeight: this.sizes.navigator.height
           });
           break;

@@ -125,7 +125,7 @@ export default {
         task: 'RENDER',
         params: {
           type: 'average',
-          viewWidth: this.clientWidth,
+          viewWidth: this.width,
           viewHeight: this.sizes.navigator.height
         }
       });

@@ -1,5 +1,7 @@
 <template>
   <svg :view-box.camel="[0, 0, width ? width : 0, height ? height : 0]"
+       :width="width ? width : 0"
+       :height="height ? height : 0"
        @mousedown.prevent="_onMixinMouse"
        @mousemove.prevent="_onMixinMouse"
        @mouseup.prevent="_onMixinMouse"
@@ -8,7 +10,8 @@
        @touchmove.prevent="_onMixinTouch"
        @touchend.prevent="_onMixinTouch"
        @touchcancel.prevent="_onMixinTouch"
-       :style="[grabStyle, {height: height + 'px'}]">
+       :style="[grabStyle]"
+  >
     <line x1="0" :x2="width" stroke="black" opacity="0.3"/>
     <g :transform="navigatotScale">
       <g :transform="navigatorPathScale">
