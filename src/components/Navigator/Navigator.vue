@@ -14,7 +14,7 @@
       <g :transform="navigatorPathScale">
         <path fill="transparent" stroke="rgba(21,101,192,0.8)" :d="navigatorPath"/>
       </g>
-      <g>
+      <g v-if="this.average && this.average.minTimestamp > 0">
         <path fill="rgba(21,101,192,0.8)" stroke="1" :class="{'please-stop-handle': expositionLimitLeft}" :d="left"/>
         <path fill="rgba(21,101,192,0.1)" stroke="1" :class="{'please-stop-center': expositionLimit}" :d="center"></path>
         <path fill="rgba(21,101,192,0.8)" stroke="1" :class="{'please-stop-handle': expositionLimitRight}" :d="right"/>
@@ -108,20 +108,16 @@
         }
       },
       leftX () {
-        if (this.eventsMouse.scrolling.isScrolling) {
-          return this.fixed.left;
-        } else {
+        if (!this.eventsMouse.scrolling.isScrolling) {
           this.fixed.left = (this.offset - this.average.minTimestamp || 0) * this.xMultiplier;
-          return this.fixed.left;
         }
+        return this.fixed.left;
       },
       rightX () {
-        if (this.eventsMouse.scrolling.isScrolling) {
-          return this.fixed.right;
-        } else {
+        if (!this.eventsMouse.scrolling.isScrolling) {
           this.fixed.right = (this.offset + this.exposition - this.average.minTimestamp || 0) * this.xMultiplier;
-          return this.fixed.right;
         }
+        return this.fixed.right;
       },
       left () {
         return `M${this.leftX} 0 L${this.leftX - this.handleWidth} 0
@@ -213,25 +209,40 @@
           this.grabStyle.cursor = 'grabbing';
           if (!this.lastHandle) {
             this.startCenterDiff = this.leftX - event.x;
-            this.startExposition = this.fixed.right - this.fixed.left;
+            this.startExposition = this.convertTimestampToX(this.exposition);
           }
           this.lastHandle = this.HANDLES.CENTER;
           let offset = this.convertCurrentX(event.x, this.startCenterDiff);
-          if (this.checkForRightEdge(offset, this.startExposition / this.xMultiplier) && this.checkForLeftEdge(offset)) {
+          if (this.checkForRightEdge(offset, this.convertXToTimestamp(this.startExposition)) && this.checkForLeftEdge(offset)) {
             this.fixed.left = event.x + this.startCenterDiff;
             this.fixed.right = this.fixed.left + this.startExposition;
-            this.$emit('handler', {offset}, 'center');
+          } else if (!this.checkForRightEdge(offset, this.convertXToTimestamp(this.startExposition))) {
+            this.fixed.right = this.width;
+            this.fixed.left = this.fixed.right - this.startExposition;
+            let dif = this.width - (event.x + this.startCenterDiff);
+            offset = offset + this.convertXToTimestamp(dif);
+          } else if (!this.checkForLeftEdge(offset)) {
+            this.fixed.left = 0;
+            this.fixed.right = this.startExposition;
+            offset = this.average.minTimestamp;
           }
+          this.$emit('handler', {offset}, 'center');
         } else {
           this.grabStyle.cursor = 'default';
           this.lastHandle = null;
         }
       },
       convertCurrentX (x, additional = 0) {
-        return this.average.minTimestamp + (x + additional) / this.xMultiplier;
+        return this.average.minTimestamp + this.convertXToTimestamp(x + additional);
+      },
+      convertXToTimestamp (x) {
+        return x / this.xMultiplier;
+      },
+      convertTimestampToX (timestamp) {
+        return timestamp * this.xMultiplier;
       },
       checkForRightEdge (offset, exposition = this.exposition) {
-        return (offset + exposition) < (new Date()).getTime() / 1e3;
+        return (offset + exposition) <= (new Date()).getTime() / 1e3;
       },
       checkForLeftEdge (offset) {
         return (offset) > this.average.minTimestamp - this.handleWidth
