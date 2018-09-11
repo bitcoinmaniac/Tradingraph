@@ -79,6 +79,7 @@
           right: 10
         },
         startCenterDiff: 0,
+        startLeftDiff: 0,
         startExposition: 0,
         expositionLimit: false,
         expositionLimitLeft: false,
@@ -163,10 +164,10 @@
         return x >= this.leftX - 2 * this.handleWidth && x <= this.leftX;
       },
       isCenter (x) {
-        return x >= this.leftX && x <= this.rightX - this.handleWidth;
+        return x >= this.leftX && x <= this.rightX;
       },
       isRight (x) {
-        return x >= this.rightX - this.handleWidth && x <= this.rightX + this.handleWidth;
+        return x >= this.rightX && x <= this.rightX + 2 * this.handleWidth;
       },
       computeGrabStyle (x) {
         if (this.isCenter(x)) {
@@ -207,7 +208,7 @@
           }
         } else if (event.x && this.isCenterHandle) {
           this.grabStyle.cursor = 'grabbing';
-          if (!this.lastHandle) {
+          if (this.lastHandle === null) {
             this.startCenterDiff = this.leftX - event.x;
             this.startExposition = this.convertTimestampToX(this.exposition);
           }

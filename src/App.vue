@@ -13,6 +13,7 @@
            @touchmove.prevent="_onMixinTouch"
            @touchend.prevent="_onMixinTouch"
            @touchcancel.prevent="_onMixinTouch"
+           :style="{cursor: interactive.cursor}"
            ref="chart"
       >
         <!--main chart group-->
@@ -101,6 +102,7 @@
         isEmpty: false,
         average: [],
         interactive: {
+          cursor: 'default',
           hoverCandle: null,
           cursorX: 0,
           cursorY: 0,
@@ -157,6 +159,9 @@
           }
         },
         deep: true
+      },
+      'eventsMouse.scrolling.isScrolling' (value) {
+        this.interactive.cursor = value ? 'grabbing' : 'default';
       }
     },
     created () {
