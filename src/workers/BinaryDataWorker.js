@@ -1,4 +1,4 @@
-const MIN_WIDTH_CANDLE = 10;
+const MIN_WIDTH_CANDLE = 3;
 const VOLUME_ZONE = 0.3;    // Volume area
 
 class BinaryDataWorker {
