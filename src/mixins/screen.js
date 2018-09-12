@@ -93,6 +93,9 @@ export default {
         this.setView(this.intervalStartOffset, this.initExposition);
       }
     },
+    minExposition () {
+      this.setView();
+    },
     'initialSize.height' () {
       this._onResize();
     },
