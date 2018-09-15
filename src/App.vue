@@ -56,7 +56,7 @@
       </svg>
     </div>
     <navigator :width="width" :average="average" :offset="interval.offset" :exposition="exposition"
-               @handler="onHandle" :minZoom="minZoom" :maxZoom="maxZoom"/>
+               :wholeInterval="interval.width" @handler="onHandle" :minZoom="minZoom" :maxZoom="maxZoom"/>
   </div>
 </template>
 

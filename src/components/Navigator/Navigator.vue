@@ -65,6 +65,10 @@
       width: {
         type: Number,
         required: false
+      },
+      wholeInterval: {
+        type: Number,
+        required: true
       }
     },
     data () {
@@ -91,9 +95,12 @@
       }
     },
     computed: {
+      workAreaCoef () {
+        return (this.width - 2 * this.handleWidth) / this.width;
+      },
       navigatotScale () {
         if (this.width) {
-          return `translate(${this.handleWidth}) scale(${(this.width - 2 * this.handleWidth) / this.width})`;
+          return `translate(${this.handleWidth}) scale(${this.workAreaCoef})`;
         } else {
           return `translate(${this.handleWidth})`;
         }
@@ -106,7 +113,7 @@
       },
       xMultiplier () {
         if (this.width && this.average.minTimestamp) {
-          return this.width / ((new Date()).getTime() / 1e3 - this.average.minTimestamp);
+          return (this.width) / (this.wholeInterval - this.average.minTimestamp);
         } else {
           return 1;
         }
@@ -147,10 +154,10 @@
           this.isRight(this.eventsMouse.scrolling.clientXWithOffset) || this.lastHandle === this.HANDLES.RIGHT
       },
       maxExposition () {
-        return ((new Date()).getTime() / 1e3) / this.minZoom
+        return this.wholeInterval / this.minZoom
       },
       minExposition () {
-        return ((new Date()).getTime() / 1e3) / this.maxZoom
+        return this.wholeInterval / this.maxZoom
       }
     },
     watch: {
@@ -163,13 +170,19 @@
       }
     },
     methods: {
+      convertXForHandler (x) {
+        return x / this.workAreaCoef - this.handleWidth;
+      },
       isLeft (x) {
+        x = this.convertXForHandler(x);
         return x >= this.leftX - 2 * this.handleWidth && x <= this.leftX;
       },
       isCenter (x) {
+        x = this.convertXForHandler(x);
         return x >= this.leftX && x <= this.rightX;
       },
       isRight (x) {
+        x = this.convertXForHandler(x);
         return x >= this.rightX && x <= this.rightX + 2 * this.handleWidth;
       },
       computeGrabStyle (x) {
@@ -246,7 +259,7 @@
         return timestamp * this.xMultiplier;
       },
       checkForRightEdge (offset, exposition = this.exposition) {
-        return (offset + exposition) <= (new Date()).getTime() / 1e3;
+        return (offset + exposition) <= this.wholeInterval;
       },
       checkForLeftEdge (offset) {
         return (offset) > this.average.minTimestamp - this.handleWidth
