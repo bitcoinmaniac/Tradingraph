@@ -175,7 +175,7 @@
       },
       isLeft (x) {
         x = this.convertXForHandler(x);
-        return x >= this.leftX - 2 * this.handleWidth && x <= this.leftX;
+        return x >= this.leftX - 1.5 * this.handleWidth && x <= this.leftX;
       },
       isCenter (x) {
         x = this.convertXForHandler(x);
@@ -183,7 +183,7 @@
       },
       isRight (x) {
         x = this.convertXForHandler(x);
-        return x >= this.rightX && x <= this.rightX + 2 * this.handleWidth;
+        return x >= this.rightX && x <= this.rightX + 1.5 * this.handleWidth;
       },
       computeGrabStyle (x) {
         if (this.isCenter(x)) {
