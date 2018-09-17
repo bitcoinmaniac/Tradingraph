@@ -87,7 +87,10 @@
         },
         startCenterDiff: 0,
         startLeftDiff: 0,
+        startRightDiff: 0,
         startExposition: 0,
+        leftStart: 0,
+        rightEnd: 0,
         expositionLimit: false,
         expositionLimitLeft: false,
         expositionLimitRight: false,
@@ -199,25 +202,37 @@
       },
       onSwipe (event) {
         if (event.x && this.isLeftHandle) {
+          let x = this.convertXForHandler(event.x);
           this.grabStyle.cursor = 'ew-resize';
+          if (this.lastHandle === null) {
+            this.rightEnd = this.offset + this.exposition;
+            this.startLeftDiff = this.leftX - x;
+          }
+          x += this.startLeftDiff;
           this.lastHandle = this.HANDLES.LEFT;
-          let offset = this.convertCurrentX(event.x);
-          let exposition = (this.rightX - event.x) / this.xMultiplier;
-          if (this.isExpositionValid(exposition) && this.checkForLeftEdge(offset, exposition) && event.x < this.rightX) {
+          let offset = this.convertCurrentX(x);
+          let exposition = this.convertXToTimestamp(this.rightX - x);
+          if (this.isExpositionValid(exposition) && this.checkForLeftEdge(offset, exposition) && x < this.rightX) {
             this.expositionLimitLeft = false;
-            this.fixed.left = event.x;
+            this.fixed.left = x;
             this.$emit('handler', {offset, exposition}, 'left');
           } else {
             this.expositionLimitLeft = true;
           }
         } else if (event.x && this.isRightHandle) {
+          let x = this.convertXForHandler(event.x);
+          this.grabStyle.cursor = 'ew-resize';
+          if (this.lastHandle === null) {
+            this.startRightDiff = this.rightX - x;
+          }
+          x += this.startRightDiff;
           this.grabStyle.cursor = 'ew-resize';
           this.lastHandle = this.HANDLES.RIGHT;
-          let offset = this.average.minTimestamp + this.leftX / this.xMultiplier;
-          let exposition = this.convertCurrentX(event.x) - offset;
-          if (this.isExpositionValid(exposition) && this.checkForRightEdge(offset) && event.x > this.leftX) {
+          let offset = this.convertCurrentX(this.leftX);
+          let exposition = this.convertCurrentX(x) - offset;
+          if (this.isExpositionValid(exposition) && this.checkForRightEdge(offset) && x > this.leftX) {
             this.expositionLimitRight = false;
-            this.fixed.right = event.x;
+            this.fixed.right = x;
             this.$emit('handler', {offset, exposition}, 'right');
           } else {
             this.expositionLimitRight = true;
