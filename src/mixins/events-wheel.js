@@ -12,10 +12,10 @@ export default {
       let targetMoment = this.interval.offset + this.exposition * (event.layerX / this.chart.width);
       switch(Math.max(-1, Math.min(1, (e.deltaY || -e.detail)))){
         case 1:
-          this.onZoom(1 + WHEEL_ZOOM_STEP, targetMoment);
+          this.onZoom(1 - WHEEL_ZOOM_STEP, targetMoment);
           break;
         case -1:
-          this.onZoom(1 - WHEEL_ZOOM_STEP, targetMoment);
+          this.onZoom(1 + WHEEL_ZOOM_STEP, targetMoment);
           break;
       }
       e.preventDefault();
