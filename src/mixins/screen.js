@@ -176,8 +176,12 @@ export default {
       return Math.floor(offset);
     },
     setView (offset = this.interval.offset, exposition = this.exposition) {
+      if ((this.interval.offset + exposition) <= this.interval.width) {
+        this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
+      } else {
+        this.zoom.value = this.rebaseZoom(this.interval.width / (this.interval.width - this.interval.offset));
+      }
       this.interval.offset = this._rebaseOffset(offset);
-      this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
     },
     onSwipe (params) {
       this.interval.offset = this._rebaseOffset(this.interval.offset + params.offsetX);

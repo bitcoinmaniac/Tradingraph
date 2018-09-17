@@ -211,7 +211,7 @@
           x += this.startLeftDiff;
           this.lastHandle = this.HANDLES.LEFT;
           let offset = this.convertCurrentX(x);
-          let exposition = this.convertXToTimestamp(this.rightX - x);
+          let exposition = this.rightEnd - offset;
           if (this.isExpositionValid(exposition) && this.checkForLeftEdge(offset, exposition) && x < this.rightX) {
             this.expositionLimitLeft = false;
             this.fixed.left = x;
