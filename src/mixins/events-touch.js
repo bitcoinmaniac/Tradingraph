@@ -30,7 +30,6 @@ export default {
         }
         return;
       }
-
       let newEvt = document.createEvent('MouseEvents');
       let type = null;
       let touch = null;

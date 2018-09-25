@@ -4,22 +4,24 @@ export default {
       type: Object,
       required: false
     },
+    settings: {
+      type: Object,
+      required: false,
+      default: () => {}
+    },
     data: {
-      type: Array,
+      type: [Array, ArrayBuffer],
       required: true
     },
-    dataAverage: {
-      type: Array,
-      required: true
-    },
-    noMoreData: {
-      type: Boolean,
-      required: true
+    requestedParams: {
+      type: Object,
+      required: true,
+      default: {}
     },
     intervalWidth: {
       type: Number,
       required: false,
-      default: 86400
+      default: (new Date()).getTime() / 1e3
     },
     initExposition: {
       type: Number,
@@ -40,6 +42,16 @@ export default {
       type: Array,
       required: false,
       default: () => [900, 1800, 3600, 14400, 28800, 43200, 86400, 604800, 2592000, 31536000]
+    },
+    reloadCounter: {
+      type: Number,
+      required: false,
+      default: 0
+    },
+    minCandleWidth: {
+      type: Number,
+      required: false,
+      default: 3
     }
   },
   watch: {
@@ -54,12 +66,6 @@ export default {
     },
     availableCandleWidths (value) {
       this.candleWidths = value;
-      this.workers.candlesWorker.postMessage({
-        task: 'SET-PARAMS',
-        params: {
-          candleWidths: this.availableCandleWidths
-        }
-      });
       this.zoom.value = this.rebaseZoom(this.zoom.value);
       if ('onRedraw' in this) {
         this.onRedraw();
@@ -75,6 +81,6 @@ export default {
     data (value) {
       this.chartData = value;
       return {}
-    },
+    }
   }
 };

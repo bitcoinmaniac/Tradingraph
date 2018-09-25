@@ -19,8 +19,8 @@ export default {
         return `${month}.${year}`;
       }
     },
-    price (value) {
-      return value ? value.toFixed(4) : 0;
+    price (value, fraction = 4) {
+      return value ? value.toFixed(fraction) : 0;
     },
     moment (timestamp) {
       let date = new Date(timestamp * 1e3);

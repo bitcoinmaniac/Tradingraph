@@ -1,12 +1,12 @@
 <template>
   <g>
-    <g v-for="time in axisX" :transform="`translate(${time.x}, 0)`" :key="time.time">
-      <line :y1="chartHeight - 20" :y2="chartHeight - 15" :x1="xOffset" :x2="xOffset" class="axis-x" opacity="0.3"></line>
-      <text :y="chartHeight - 5" style="text-anchor: middle;" font-size="10">
+    <g v-for="time in axisX" :transform="`translate(${time.x})`" :key="time.time">
+      <line :y1="axisOffset" :y2="axisOffset + lineOffset" :x1="xOffset" :x2="xOffset" class="axis-x" opacity="0.3"></line>
+      <text :y="axisOffset + dateOffset" style="text-anchor: middle; font-family: 'Roboto', monospace" font-size="10">
         {{time.time | time(timePart)}}
       </text>
     </g>
-    <line :x1="0" :x2="chartWidth" :y1="chartHeight - chartOffset" :y2="chartHeight - chartOffset" stroke="black" opacity="0.3"/>
+    <line :x1="0" :x2="chartWidth" :y1="axisOffset" :y2="axisOffset" stroke="black" opacity="0.3"/>
   </g>
 </template>
 
@@ -51,10 +51,19 @@
     },
     data () {
       return {
-        timePart: 0
+        timePart: 0,
+        lineOffset: 5,
+        dateOffset: 15,
+        datePickerWidth: 80
       }
     },
     computed: {
+      axisOffset () {
+        return this.chartHeight + this.chartOffset;
+      },
+      availableParts () {
+        return Math.ceil(this.chartWidth / (this.datePickerWidth * 2));
+      },
       axisX() {
         let timePart = null;
         let partsNumber = null;
@@ -74,6 +83,10 @@
 
         if (!timePart) {
           timePart = this.timeParts[this.timeParts.length - 1] || 1;
+        }
+        let numOfPoints = this.exposition / timePart;
+        if (numOfPoints > this.availableParts) {
+          timePart = Math.ceil((this.exposition / this.availableParts) / timePart) * timePart;
         }
 
         for (

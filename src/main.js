@@ -1,4 +1,4 @@
-import Cryptochart from './components/Cryptochart.vue';
+import Cryptochart from './App.vue';
 
 export default Cryptochart;
 
