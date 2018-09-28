@@ -218,7 +218,6 @@ class BinaryDataWorker {
     let lastPointTimestamp = (new Date()).getTime() / 1e3;
     let convertedEnd = this.convertTimestampToPackage(lastPointTimestamp - end, resolution);
     let fileSize = this.params.fileSizes[resolution];
-    console.log('RESOLUTION', resolution, 'END', end, 'convertedEnd', fileSize - convertedEnd, 'rebase', this.rebaseEnd(fileSize - convertedEnd, resolution));
     return this.rebaseEnd(fileSize - convertedEnd, resolution);
   }
   /**
@@ -246,7 +245,6 @@ class BinaryDataWorker {
     result.width = theCase * koofX;
     let dataByCase = this.data.tree[theCase];
     let start = 0;
-    // console.log('RENDER', offset, exposition, viewWidth, viewHeight);
     if (dataByCase && this.data.lastResolution === theCase) {
       let stop = dataByCase.length;
       if (offset > this.data.start) {
@@ -319,24 +317,14 @@ class BinaryDataWorker {
         result.candles.push(rCandle);
       }
     }
-    // else if (!this.params.isInitialLoading) {
-    //   let resolution = this.findAvailableResolution(theCase);
-    //   console.log('here 1');
-    //   if (resolution) {
-    //     this.requestData(
-    //       this.convertOffsetToPackage(offset, resolution),
-    //       this.convertEndToPackage(offset + exposition, resolution) - 1,
-    //       resolution
-    //     );
-    //   }
-    // }
-    if (!this.params.isInitialLoading && offset > 1 && (this.data.start > offset || this.data.end < offset + exposition || !dataByCase || this.data.lastResolution !== theCase)) {
-      console.log('here 2');
+    if (!this.params.isInitialLoading && offset > 1 && (this.data.start > offset || this.data.end < (offset + exposition) || !dataByCase || this.data.lastResolution !== theCase)) {
       let resolution = this.findAvailableResolution(theCase);
+      let correctOffset = offset < this.data.end ? offset : this.data.end;
+      let correctEnd = (offset + exposition) > this.data.start ? (offset + exposition) : this.data.start;
       if (resolution) {
         this.requestData(
-          this.convertOffsetToPackage(offset, resolution),
-          this.convertEndToPackage(offset + exposition, resolution) - 1,
+          this.convertOffsetToPackage(correctOffset, resolution),
+          this.convertEndToPackage(correctEnd, resolution) - 1,
           resolution
         );
       }
@@ -410,7 +398,12 @@ class BinaryDataWorker {
         lastResolution: 0,
         start: null,
         width: null,
-        tree: []
+        tree: [],
+        last: {
+          offset: 0,
+          end: 0,
+          resolution: 0
+        },
       });
     }
     Object.assign(this.params, freshParams);
