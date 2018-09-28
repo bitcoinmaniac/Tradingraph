@@ -15,6 +15,12 @@ export default {
           left: 0
         }
       },
+      widths: {
+        navigator: 0,
+        axisX: 0,
+        axisY: 0,
+        crosshair: 0
+      },
       zoom: {
         value: this.intervalWidth / this.initExposition,
         time_parts: this.availableIntervals,
@@ -133,7 +139,8 @@ export default {
       } else {
         this.height = this.clientHeight;
       }
-      this.chart.width = this.width;
+      this.widths.navigator = this.widths.crosshair = this.widths.axisY = this.width;
+      this.widths.axisX = this.chart.width = this.width - 80;
       this.chart.height = this.height - this.offsets.chartTop - this.offsets.chartBottom;
       if (!this.clientWidth && !this.clientHeight) {
         this.$nextTick(() => {

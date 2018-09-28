@@ -6,7 +6,7 @@
         {{time.time | time(timePart)}}
       </text>
     </g>
-    <line :x1="0" :x2="chartWidth" :y1="axisOffset" :y2="axisOffset" stroke="black" opacity="0.3"/>
+    <!--<line :x1="0" :x2="chartWidth" :y1="axisOffset" :y2="axisOffset" stroke="black" opacity="0.3"/>-->
   </g>
 </template>
 

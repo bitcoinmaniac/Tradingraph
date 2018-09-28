@@ -17,7 +17,17 @@
            ref="chart"
       >
         <!--main chart group-->
-        <g v-if="!isEmpty">
+        <g v-if="isLoading" name="loading">
+          <slot name="loading">
+            <text :y="30" :x="8" :font-size="14">Loading...</text>
+          </slot>
+        </g>
+        <g v-if="isEmpty">
+          <text  :y="height / 2" :x="width / 2" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="14">
+            <slot name="noData">No data</slot>
+          </text>
+        </g>
+        <g v-else-if="candles">
           <g v-if="interactive.hoverCandle">
             <text :y="15" :x="8" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="interactiveTool.fontSize"
                   :style="hoverColor(interactive.hoverCandle.open, interactive.hoverCandle.close)">
@@ -28,7 +38,7 @@
               Vol: {{interactive.hoverCandle.volume.toFixed(interactive.fraction.nominal)}}
             </text>
           </g>
-          <g v-if="candles" :transform="`translate(0, ${this.offsets.chartTop})`">
+          <g :transform="`translate(0, ${this.offsets.chartTop})`">
             <path class="candles-path-positive" :d="positiveCandlesPath"/>
             <path class="candles-path-negative" :d="negativeCandlesPath"/>
             <path class="candles-path-volume" :d="volumeCandlesPath"/>
@@ -41,21 +51,16 @@
                     :d="candles.candlesPositivePath[interactive.hoverCandle.candlePathIndex]"/>
             </g>
           </g>
-          <axis-y :candles="candles" :chart-height="chart.height" :chart-width="chart.width" :chart-offset="offsets.chartTop"
+          <axis-y :candles="candles" :chart-height="chart.height" :chart-width="widths.axisY" :chart-offset="offsets.chartTop"
                   :fractionLimit="interactive.fraction.limit"/>
-          <axis-x :chart-height="chart.height" :chart-width="chart.width" :time-parts="zoom.time_parts" :exposition="exposition"
+          <axis-x :chart-height="chart.height" :chart-width="widths.axisX" :time-parts="zoom.time_parts" :exposition="exposition"
                   :offset="interval.offset" :dpi="dpi" :candleWidth="candles && candles.width || 3" :chart-offset="offsets.chartBottom"/>
-          <crosshair :chart-height="chart.height" :chart-width="chart.width" :fractionLimit="interactive.fraction.limit"
+          <crosshair :chart-height="chart.height" :chart-width="widths.crosshair" :fractionLimit="interactive.fraction.limit"
                      :chart-offset="offsets.chartTop" :candles="candles" :interactive="interactive" />
-        </g>
-        <g v-else>
-          <text  :y="height / 2" :x="width / 2" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="14">
-            <slot name="noData">No data</slot>
-          </text>
         </g>
       </svg>
     </div>
-    <navigator :width="width" :average="average" :offset="interval.offset" :exposition="exposition"
+    <navigator :width="widths.navigator" :average="average" :offset="interval.offset" :exposition="exposition"
                :wholeInterval="interval.width" @handler="onHandle" :minZoom="minZoom" :maxZoom="maxZoom"/>
   </div>
 </template>
@@ -68,7 +73,6 @@
   import MixinEventsWheel from './mixins/events-wheel';
   import MixinFilters from './mixins/filters';
   import MixinProps from './mixins/props';
-  // import MixinWorkers from './mixins/workers';
   import MixinWorkers from './mixins/BinaryWorker';
   import MixinOptions from './mixins/options';
 
@@ -100,6 +104,7 @@
         chartData: this.data,
         candles: null,
         isEmpty: false,
+        isLoading: false,
         average: [],
         interactive: {
           cursor: 'default',
