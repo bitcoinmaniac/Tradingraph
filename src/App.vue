@@ -53,8 +53,9 @@
           </g>
           <axis-y :candles="candles" :chart-height="chart.height" :chart-width="widths.axisY" :chart-offset="offsets.chartTop"
                   :fractionLimit="interactive.fraction.limit"/>
-          <axis-x :chart-height="chart.height" :chart-width="widths.axisX" :time-parts="zoom.time_parts" :exposition="exposition"
-                  :offset="interval.offset" :dpi="dpi" :candleWidth="candles && candles.width || 3" :chart-offset="offsets.chartBottom"/>
+          <axis-x :chart-height="chart.height" :chart-width="width" :time-parts="zoom.time_parts" :exposition="exposition"
+                  :offset="interval.offset" :dpi="dpi" :candleWidth="candles && candles.width || 3" :chart-offset="offsets.chartBottom"
+                  :transform="`scale(${(width - axisXOffset) / width} 1)`"/>
           <crosshair :chart-height="chart.height" :chart-width="widths.crosshair" :fractionLimit="interactive.fraction.limit"
                      :chart-offset="offsets.chartTop" :candles="candles" :interactive="interactive" />
         </g>

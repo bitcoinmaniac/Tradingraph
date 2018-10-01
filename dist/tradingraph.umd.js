@@ -4561,12 +4561,12 @@ __webpack_require__.r(__webpack_exports__);
 // EXTERNAL MODULE: ./node_modules/@vue/cli-service/lib/commands/build/setPublicPath.js
 var setPublicPath = __webpack_require__("1eb2");
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"0595ba96-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/App.vue?vue&type=template&id=62ec4fef&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('div',[_c('svg',{ref:"chart",staticClass:"crypto-chart",style:({cursor: _vm.interactive.cursor}),attrs:{"viewBox":[0, 0, _vm.width ? _vm.width : 0, _vm.height ? _vm.height : 0],"width":_vm.width ? _vm.width : 0,"height":_vm.height ? _vm.height : 0},on:{"mousedown":function($event){$event.preventDefault();return _vm._onMixinMouse($event)},"mousemove":function($event){$event.preventDefault();return _vm._onMixinMouse($event)},"mouseup":function($event){$event.preventDefault();return _vm._onMixinMouse($event)},"mouseleave":function($event){$event.preventDefault();return _vm._onMixinMouse($event)},"touchstart":function($event){$event.preventDefault();return _vm._onMixinTouch($event)},"touchmove":function($event){$event.preventDefault();return _vm._onMixinTouch($event)},"touchend":function($event){$event.preventDefault();return _vm._onMixinTouch($event)},"touchcancel":function($event){$event.preventDefault();return _vm._onMixinTouch($event)}}},[(_vm.isLoading)?_c('g',{attrs:{"name":"loading"}},[_vm._t("loading",[_c('text',{attrs:{"y":30,"x":8,"font-size":14}},[_vm._v("Loading...")])])],2):_vm._e(),(_vm.isEmpty)?_c('g',[_c('text',{staticStyle:{"text-anchor":"start","font-family":"'Roboto', monospace"},attrs:{"y":_vm.height / 2,"x":_vm.width / 2,"font-size":14}},[_vm._t("noData",[_vm._v("No data")])],2)]):(_vm.candles)?_c('g',[(_vm.interactive.hoverCandle)?_c('g',[_c('text',{staticStyle:{"text-anchor":"start","font-family":"'Roboto', monospace"},style:(_vm.hoverColor(_vm.interactive.hoverCandle.open, _vm.interactive.hoverCandle.close)),attrs:{"y":15,"x":8,"font-size":_vm.interactiveTool.fontSize}},[_vm._v("\n            O: "+_vm._s(_vm.interactive.hoverCandle.open.toFixed(_vm.interactive.fraction.limit))+"\n            H: "+_vm._s(_vm.interactive.hoverCandle.high.toFixed(_vm.interactive.fraction.limit))+"\n            L: "+_vm._s(_vm.interactive.hoverCandle.low.toFixed(_vm.interactive.fraction.limit))+"\n            C: "+_vm._s(_vm.interactive.hoverCandle.close.toFixed(_vm.interactive.fraction.limit))+"\n            Vol: "+_vm._s(_vm.interactive.hoverCandle.volume.toFixed(_vm.interactive.fraction.nominal))+"\n          ")])]):_vm._e(),_c('g',{attrs:{"transform":("translate(0, " + (this.offsets.chartTop) + ")")}},[_c('path',{staticClass:"candles-path-positive",attrs:{"d":_vm.positiveCandlesPath}}),_c('path',{staticClass:"candles-path-negative",attrs:{"d":_vm.negativeCandlesPath}}),_c('path',{staticClass:"candles-path-volume",attrs:{"d":_vm.volumeCandlesPath}}),(_vm.interactive.hoverCandle)?_c('g',[_c('path',{staticClass:"candles-path-volume hover",attrs:{"d":_vm.candles.volumePath[_vm.interactive.hoverCandle.volumePathIndex]}}),(_vm.interactive.hoverCandle.class == 'negative')?_c('path',{staticClass:"candles-path-negative hover",attrs:{"d":_vm.candles.candlesNegativePath[_vm.interactive.hoverCandle.candlePathIndex]}}):(_vm.interactive.hoverCandle.class == 'positive')?_c('path',{staticClass:"candles-path-positive hover",attrs:{"d":_vm.candles.candlesPositivePath[_vm.interactive.hoverCandle.candlePathIndex]}}):_vm._e()]):_vm._e()]),_c('axis-y',{attrs:{"candles":_vm.candles,"chart-height":_vm.chart.height,"chart-width":_vm.widths.axisY,"chart-offset":_vm.offsets.chartTop,"fractionLimit":_vm.interactive.fraction.limit}}),_c('axis-x',{attrs:{"chart-height":_vm.chart.height,"chart-width":_vm.widths.axisX,"time-parts":_vm.zoom.time_parts,"exposition":_vm.exposition,"offset":_vm.interval.offset,"dpi":_vm.dpi,"candleWidth":_vm.candles && _vm.candles.width || 3,"chart-offset":_vm.offsets.chartBottom}}),_c('crosshair',{attrs:{"chart-height":_vm.chart.height,"chart-width":_vm.widths.crosshair,"fractionLimit":_vm.interactive.fraction.limit,"chart-offset":_vm.offsets.chartTop,"candles":_vm.candles,"interactive":_vm.interactive}})],1):_vm._e()])]),_c('navigator',{attrs:{"width":_vm.widths.navigator,"average":_vm.average,"offset":_vm.interval.offset,"exposition":_vm.exposition,"wholeInterval":_vm.interval.width,"minZoom":_vm.minZoom,"maxZoom":_vm.maxZoom},on:{"handler":_vm.onHandle}})],1)}
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"0595ba96-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/App.vue?vue&type=template&id=f008993a&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('div',[_c('svg',{ref:"chart",staticClass:"crypto-chart",style:({cursor: _vm.interactive.cursor}),attrs:{"viewBox":[0, 0, _vm.width ? _vm.width : 0, _vm.height ? _vm.height : 0],"width":_vm.width ? _vm.width : 0,"height":_vm.height ? _vm.height : 0},on:{"mousedown":function($event){$event.preventDefault();return _vm._onMixinMouse($event)},"mousemove":function($event){$event.preventDefault();return _vm._onMixinMouse($event)},"mouseup":function($event){$event.preventDefault();return _vm._onMixinMouse($event)},"mouseleave":function($event){$event.preventDefault();return _vm._onMixinMouse($event)},"touchstart":function($event){$event.preventDefault();return _vm._onMixinTouch($event)},"touchmove":function($event){$event.preventDefault();return _vm._onMixinTouch($event)},"touchend":function($event){$event.preventDefault();return _vm._onMixinTouch($event)},"touchcancel":function($event){$event.preventDefault();return _vm._onMixinTouch($event)}}},[(_vm.isLoading)?_c('g',{attrs:{"name":"loading"}},[_vm._t("loading",[_c('text',{attrs:{"y":30,"x":8,"font-size":14}},[_vm._v("Loading...")])])],2):_vm._e(),(_vm.isEmpty)?_c('g',[_c('text',{staticStyle:{"text-anchor":"start","font-family":"'Roboto', monospace"},attrs:{"y":_vm.height / 2,"x":_vm.width / 2,"font-size":14}},[_vm._t("noData",[_vm._v("No data")])],2)]):(_vm.candles)?_c('g',[(_vm.interactive.hoverCandle)?_c('g',[_c('text',{staticStyle:{"text-anchor":"start","font-family":"'Roboto', monospace"},style:(_vm.hoverColor(_vm.interactive.hoverCandle.open, _vm.interactive.hoverCandle.close)),attrs:{"y":15,"x":8,"font-size":_vm.interactiveTool.fontSize}},[_vm._v("\n            O: "+_vm._s(_vm.interactive.hoverCandle.open.toFixed(_vm.interactive.fraction.limit))+"\n            H: "+_vm._s(_vm.interactive.hoverCandle.high.toFixed(_vm.interactive.fraction.limit))+"\n            L: "+_vm._s(_vm.interactive.hoverCandle.low.toFixed(_vm.interactive.fraction.limit))+"\n            C: "+_vm._s(_vm.interactive.hoverCandle.close.toFixed(_vm.interactive.fraction.limit))+"\n            Vol: "+_vm._s(_vm.interactive.hoverCandle.volume.toFixed(_vm.interactive.fraction.nominal))+"\n          ")])]):_vm._e(),_c('g',{attrs:{"transform":("translate(0, " + (this.offsets.chartTop) + ")")}},[_c('path',{staticClass:"candles-path-positive",attrs:{"d":_vm.positiveCandlesPath}}),_c('path',{staticClass:"candles-path-negative",attrs:{"d":_vm.negativeCandlesPath}}),_c('path',{staticClass:"candles-path-volume",attrs:{"d":_vm.volumeCandlesPath}}),(_vm.interactive.hoverCandle)?_c('g',[_c('path',{staticClass:"candles-path-volume hover",attrs:{"d":_vm.candles.volumePath[_vm.interactive.hoverCandle.volumePathIndex]}}),(_vm.interactive.hoverCandle.class == 'negative')?_c('path',{staticClass:"candles-path-negative hover",attrs:{"d":_vm.candles.candlesNegativePath[_vm.interactive.hoverCandle.candlePathIndex]}}):(_vm.interactive.hoverCandle.class == 'positive')?_c('path',{staticClass:"candles-path-positive hover",attrs:{"d":_vm.candles.candlesPositivePath[_vm.interactive.hoverCandle.candlePathIndex]}}):_vm._e()]):_vm._e()]),_c('axis-y',{attrs:{"candles":_vm.candles,"chart-height":_vm.chart.height,"chart-width":_vm.widths.axisY,"chart-offset":_vm.offsets.chartTop,"fractionLimit":_vm.interactive.fraction.limit}}),_c('axis-x',{attrs:{"chart-height":_vm.chart.height,"chart-width":_vm.width,"time-parts":_vm.zoom.time_parts,"exposition":_vm.exposition,"offset":_vm.interval.offset,"dpi":_vm.dpi,"candleWidth":_vm.candles && _vm.candles.width || 3,"chart-offset":_vm.offsets.chartBottom,"transform":("scale(" + ((_vm.width - _vm.axisXOffset) / _vm.width) + " 1)")}}),_c('crosshair',{attrs:{"chart-height":_vm.chart.height,"chart-width":_vm.widths.crosshair,"fractionLimit":_vm.interactive.fraction.limit,"chart-offset":_vm.offsets.chartTop,"candles":_vm.candles,"interactive":_vm.interactive}})],1):_vm._e()])]),_c('navigator',{attrs:{"width":_vm.widths.navigator,"average":_vm.average,"offset":_vm.interval.offset,"exposition":_vm.exposition,"wholeInterval":_vm.interval.width,"minZoom":_vm.minZoom,"maxZoom":_vm.maxZoom},on:{"handler":_vm.onHandle}})],1)}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/App.vue?vue&type=template&id=62ec4fef&
+// CONCATENATED MODULE: ./src/App.vue?vue&type=template&id=f008993a&
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es6.object.assign.js
 var es6_object_assign = __webpack_require__("f751");
@@ -4585,6 +4585,9 @@ var lodash_clonedeep = __webpack_require__("cd3f");
 var lodash_clonedeep_default = /*#__PURE__*/__webpack_require__.n(lodash_clonedeep);
 
 // CONCATENATED MODULE: ./src/mixins/screen.js
+
+
+
 /* harmony default export */ var screen = ({
   data: function data() {
     return {
@@ -4606,7 +4609,8 @@ var lodash_clonedeep_default = /*#__PURE__*/__webpack_require__.n(lodash_clonede
         navigator: 0,
         axisX: 0,
         axisY: 0,
-        crosshair: 0
+        crosshair: 0,
+        rightPanel: 70
       },
       zoom: {
         value: this.intervalWidth / this.initExposition,
@@ -4674,6 +4678,13 @@ var lodash_clonedeep_default = /*#__PURE__*/__webpack_require__.n(lodash_clonede
     },
     maxZoom: function maxZoom() {
       return this.interval.width / this.minExposition;
+    },
+    axisXOffset: function axisXOffset() {
+      if (this.candles && this.candles.width) {
+        return this.widths.rightPanel + this.candles.width / 2;
+      }
+
+      return 90;
     }
   },
   watch: {
@@ -4738,7 +4749,7 @@ var lodash_clonedeep_default = /*#__PURE__*/__webpack_require__.n(lodash_clonede
       }
 
       this.widths.navigator = this.widths.crosshair = this.widths.axisY = this.width;
-      this.widths.axisX = this.chart.width = this.width - 80;
+      this.chart.width = this.width;
       this.chart.height = this.height - this.offsets.chartTop - this.offsets.chartBottom;
 
       if (!this.clientWidth && !this.clientHeight) {
@@ -5189,9 +5200,6 @@ var BinaryDataWorker_default = /*#__PURE__*/__webpack_require__.n(BinaryDataWork
 
 
 
-
-
-
 /* harmony default export */ var BinaryWorker = ({
   data: function data() {
     return {
@@ -5350,7 +5358,7 @@ var BinaryDataWorker_default = /*#__PURE__*/__webpack_require__.n(BinaryDataWork
             type: 'candles',
             offset: this.interval.offset,
             exposition: this.exposition,
-            viewWidth: this.chart.width,
+            viewWidth: this.chart.width - this.axisXOffset,
             viewHeight: this.chart.height
           }
         });
@@ -5754,6 +5762,9 @@ var Crosshairvue_type_template_id_08913442_scoped_true_staticRenderFns = []
 // CONCATENATED MODULE: ./src/components/Intercative/Crosshair.vue?vue&type=template&id=08913442&scoped=true&
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./src/components/Intercative/Crosshair.vue?vue&type=script&lang=js&
+
+
+
 
 //
 //
@@ -6199,6 +6210,7 @@ Navigator_component.options.__file = "Navigator.vue"
 
 
 
+//
 //
 //
 //

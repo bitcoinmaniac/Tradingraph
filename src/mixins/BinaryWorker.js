@@ -120,7 +120,7 @@ export default {
             type: 'candles',
             offset: this.interval.offset,
             exposition: this.exposition,
-            viewWidth: this.chart.width,
+            viewWidth: this.chart.width - this.axisXOffset,
             viewHeight: this.chart.height
           }
         });
