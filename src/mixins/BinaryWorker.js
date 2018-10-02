@@ -29,9 +29,6 @@ export default {
     },
     reloadCounter () {
       this.workers.binaryWorker.postMessage({task: 'RELOAD'});
-    },
-    isLoading (value) {
-      console.log(value);
     }
   },
   mounted () {
