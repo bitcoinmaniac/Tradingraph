@@ -197,6 +197,13 @@
           this.grabStyle.cursor = 'default';
         }
       },
+      onClick (event) {
+        if (!this.isLeftHandle && !this.isRightHandle && !this.isCenterHandle) {
+          let exposition = this.exposition;
+          let offset = this.convertCurrentX(event.x - this.convertTimestampToX(exposition) / 2);
+          this.$emit('handler', {offset, exposition}, 'center');
+        }
+      },
       onHover (event) {
         this.computeGrabStyle(event.x);
       },
