@@ -45,7 +45,10 @@
     },
     computed: {
       realY () {
-        return (this.interactive.cursorY + this.chartOffset);
+        let value = this.interactive.cursorY + this.chartOffset;
+        value = value > 0 ? value : 0;
+        value = value < this.chartHeight ? value : this.chartHeight;
+        return value;
       },
       crossPath() {
         if (!this.interactive.hoverCandle) {
