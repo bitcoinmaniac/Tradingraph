@@ -5181,6 +5181,9 @@ var BinaryDataWorker_default = /*#__PURE__*/__webpack_require__.n(BinaryDataWork
 
 
 
+
+
+
 /* harmony default export */ var BinaryWorker = ({
   data: function data() {
     return {
@@ -5218,9 +5221,6 @@ var BinaryDataWorker_default = /*#__PURE__*/__webpack_require__.n(BinaryDataWork
       this.workers.binaryWorker.postMessage({
         task: 'RELOAD'
       });
-    },
-    isLoading: function isLoading(value) {
-      console.log(value);
     }
   },
   mounted: function mounted() {
