@@ -4805,12 +4805,7 @@ var lodash_clonedeep_default = /*#__PURE__*/__webpack_require__.n(lodash_clonede
         offset = offset + this.exposition - this.maxExposition;
       }
 
-      if (this.interval.offset + exposition <= this.interval.width) {
-        this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
-      } else {
-        this.zoom.value = this.rebaseZoom(this.interval.width / (this.interval.width - this.interval.offset));
-      }
-
+      this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
       this.interval.offset = this._rebaseOffset(offset);
     },
     onSwipe: function onSwipe(params) {
@@ -4819,6 +4814,7 @@ var lodash_clonedeep_default = /*#__PURE__*/__webpack_require__.n(lodash_clonede
     onHandle: function onHandle(data, position) {
       switch (position) {
         case 'left':
+        case 'right':
           {
             this.setView(data.offset, data.exposition);
             break;
@@ -4827,12 +4823,6 @@ var lodash_clonedeep_default = /*#__PURE__*/__webpack_require__.n(lodash_clonede
         case 'center':
           {
             this.setView(data.offset);
-            break;
-          }
-
-        case 'right':
-          {
-            this.setView(data.offset, data.exposition);
             break;
           }
 

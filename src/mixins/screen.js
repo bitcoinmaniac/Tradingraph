@@ -196,11 +196,7 @@ export default {
       if (this.exposition > this.maxExposition) {
         offset = offset + this.exposition - this.maxExposition;
       }
-      if ((this.interval.offset + exposition) <= this.interval.width) {
-        this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
-      } else {
-        this.zoom.value = this.rebaseZoom(this.interval.width / (this.interval.width - this.interval.offset));
-      }
+      this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
       this.interval.offset = this._rebaseOffset(offset);
     },
     onSwipe (params) {
@@ -208,16 +204,13 @@ export default {
     },
     onHandle (data, position) {
       switch (position) {
-        case 'left': {
+        case 'left':
+        case 'right': {
           this.setView(data.offset, data.exposition);
           break;
         }
         case 'center': {
           this.setView(data.offset);
-          break;
-        }
-        case 'right': {
-          this.setView(data.offset, data.exposition);
           break;
         }
         default: break;
