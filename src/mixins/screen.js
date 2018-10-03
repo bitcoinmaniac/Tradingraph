@@ -87,7 +87,7 @@ export default {
     },
     axisXOffset () {
       if (this.candles && this.candles.width) {
-        return this.widths.rightPanel + this.candles.width / 2;
+        return this.widths.rightPanel + this.candles.width / 4;
       }
       return 90;
     }
