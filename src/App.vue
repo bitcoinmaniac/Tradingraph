@@ -23,7 +23,7 @@
           </slot>
         </g>
         <g v-if="isEmpty">
-          <text  :y="height / 2" :x="width / 2" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="14">
+          <text  :y="height / 2" :x="width / 2" style="text-anchor: middle; font-family: 'Roboto', monospace" :font-size="14">
             <slot name="noData">No data</slot>
           </text>
         </g>
