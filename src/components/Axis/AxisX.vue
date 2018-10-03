@@ -1,12 +1,12 @@
 <template>
   <g>
     <g v-for="time in axisX" :transform="`translate(${time.x})`" :key="time.time">
-      <line :y1="axisOffset" :y2="axisOffset + lineOffset" :x1="xOffset" :x2="xOffset" class="axis-x" opacity="0.3"></line>
+      <line :y1="axisOffset" :y2="axisOffset + lineOffset" :x1="xOffset" :x2="xOffset" class="axis-x" stroke-opacity="0.3"></line>
       <text :y="axisOffset + dateOffset" style="text-anchor: middle; font-family: 'Roboto', monospace" font-size="10">
         {{time.time | time(timePart)}}
       </text>
     </g>
-    <!--<line :x1="0" :x2="chartWidth" :y1="axisOffset" :y2="axisOffset" stroke="black" opacity="0.3"/>-->
+    <!--<line :x1="0" :x2="chartWidth" :y1="axisOffset" :y2="axisOffset" stroke="black" stroke-opacity="0.3"/>-->
   </g>
 </template>
 
