@@ -91,8 +91,9 @@ class BinaryDataWorker {
     this.params.dataRequestPending = false;
     this.appendedData = ['candleData'];
     this.data.candlesBinary = data.slice(0);
+    this.data.candlesParsed.splice(0);
     if (this.params.needDropData) {
-      this.data.candlesParsed.splice(0);
+      // this.data.candlesParsed.splice(0);
       this.params.needDropData = false;
     }
     this.data.candlesParsed = this.data.candlesParsed.concat(this.parseChartData(this.data.candlesBinary)).sort((a, b) => {
@@ -319,12 +320,12 @@ class BinaryDataWorker {
     }
     if (!this.params.isInitialLoading && offset > 1 && (this.data.start > offset || this.data.end < (offset + exposition) || !dataByCase || this.data.lastResolution !== theCase)) {
       let resolution = this.findAvailableResolution(theCase);
-      let correctOffset = offset < this.data.end ? offset : this.data.end;
-      let correctEnd = (offset + exposition) > this.data.start ? (offset + exposition) : this.data.start;
+      // let correctOffset = offset < this.data.end ? offset : this.data.end;
+      // let correctEnd = (offset + exposition) > this.data.start ? (offset + exposition) : this.data.start;
       if (resolution) {
         this.requestData(
-          this.convertOffsetToPackage(correctOffset, resolution),
-          this.convertEndToPackage(correctEnd, resolution) - 1,
+          this.convertOffsetToPackage(offset, resolution),
+          this.convertEndToPackage(offset + exposition, resolution) - 1,
           resolution
         );
       }

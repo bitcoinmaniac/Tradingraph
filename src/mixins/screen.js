@@ -109,6 +109,9 @@ export default {
     maxZoom () {
       this.setView();
     },
+    minZoom () {
+      this.setView();
+    },
     'initialSize.height' () {
       this._onResize();
     },
@@ -190,11 +193,11 @@ export default {
       return Math.floor(offset);
     },
     setView (offset = this.interval.offset, exposition = this.exposition) {
+      if (this.exposition > this.maxExposition && this.exposition > this.minExposition) {
+        offset = offset + this.exposition - this.maxExposition;
+      }
       if (this.exposition < this.minExposition) {
         offset = offset + this.exposition - this.minExposition;
-      }
-      if (this.exposition > this.maxExposition) {
-        offset = offset + this.exposition - this.maxExposition;
       }
       this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
       this.interval.offset = this._rebaseOffset(offset);
