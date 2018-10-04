@@ -226,7 +226,7 @@ class BinaryDataWorker {
     let result = [];
     for (let i = 0; i < array.length; i++) {
       if (i + 1 < window) {
-        result.push(0);
+        result.push(NaN);
       } else {
         result.push(this.average(array.slice(i + 1 - window, i + 1)));
       }
@@ -308,8 +308,8 @@ class BinaryDataWorker {
         yVolumeFactor = viewHeight * VOLUME_ZONE / result.maxVolume;
       }
       let barHalf = theCase * koofX * 0.25;
-      let smaData10 = this.computeSma(dataByCase.slice(start, stop), 1);
-      let smaData2 = this.computeSma(dataByCase.slice(start, stop), 10);
+      let smaData10 = this.computeSma(dataByCase.slice(start, stop), 10);
+      let smaData2 = this.computeSma(dataByCase.slice(start, stop), 1);
       for (let index = start; index < stop; index++) {
         let candle = dataByCase[index];
         let x = (candle.timestamp - offset) * koofX;
@@ -335,12 +335,10 @@ class BinaryDataWorker {
            L${x + barHalf} ${viewHeight}
            L${x - barHalf} ${viewHeight}`
         ) - 1;
-        if (smaData10[index - start]) {
-          result.smaPath10.push(`${result.smaPath10.length === 0 ? 'M' : 'L'}${x} ${(result.high - smaData10[index - start]) * yFactor}`);
-        }
-        if (smaData2[index - start]) {
-          result.smaPath2.push(`${result.smaPath2.length === 0 ? 'M' : 'L'}${x} ${(result.high - smaData2[index - start]) * yFactor}`);
-        }
+
+        result.smaPath10.push(`${result.smaPath10.length === 0 ? 'M' : 'L'}${x} ${(result.high - (smaData10[index - start] || candle.close)) * yFactor}`);
+        result.smaPath2.push(`${result.smaPath2.length === 0 ? 'M' : 'L'}${x} ${(result.high - (smaData2[index - start] || candle.close)) * yFactor}`);
+
         rCandle.x = x;
         result.candles.push(rCandle);
       }
