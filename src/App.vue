@@ -42,6 +42,8 @@
             <path class="candles-path-positive" :d="positiveCandlesPath"/>
             <path class="candles-path-negative" :d="negativeCandlesPath"/>
             <path class="candles-path-volume" :d="volumeCandlesPath"/>
+            <path fill="transparent" stroke="rgba(21,101,192,1)" :d="smaPath10"/>
+            <path fill="transparent" stroke="rgba(21,101,192,1)" :d="smaPath2"/>
             <g v-if="interactive.hoverCandle">
               <path class="candles-path-volume hover"
                     :d="candles.volumePath[interactive.hoverCandle.volumePathIndex]"/>
@@ -146,6 +148,12 @@
           result.splice(this.interactive.hoverCandle.volumePathIndex, 1);
         }
         return result.join(' ');
+      },
+      smaPath10 () {
+        return this.candles.smaPath10.join(' ');
+      },
+      smaPath2 () {
+        return this.candles.smaPath2.join(' ');
       },
       fontSizeAxisY() {
         return this.fontHeight < (this.chart.offset.left / 6) ? this.chart.offset.left / 6 : this.fontHeight;

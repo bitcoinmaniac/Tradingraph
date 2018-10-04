@@ -221,6 +221,24 @@ class BinaryDataWorker {
     let fileSize = this.params.fileSizes[resolution];
     return this.rebaseEnd(fileSize - convertedEnd, resolution);
   }
+  computeSma (array, windowSize) {
+    let window = windowSize || array.length;
+    let result = [];
+    for (let i = 0; i < array.length; i++) {
+      if (i + 1 < window) {
+        result.push(0);
+      } else {
+        result.push(this.average(array.slice(i + 1 - window, i + 1)));
+      }
+    }
+    return result;
+  }
+  average (arr) {
+    let len = arr.length;
+    let num = 0;
+    while (len--) num += Number(arr[len].close);
+    return num / arr.length;
+  }
   /**
    * @description Render candles objects
    * @param {Number} offset     - exposition offset
@@ -239,7 +257,9 @@ class BinaryDataWorker {
       candles: [],
       candlesPositivePath: [],
       candlesNegativePath: [],
-      volumePath: []
+      volumePath: [],
+      smaPath10: [],
+      smaPath2: []
     };
     let theCase = this.findCandleWidthForUse(exposition, viewWidth);
     let koofX = viewWidth / exposition;
@@ -288,6 +308,8 @@ class BinaryDataWorker {
         yVolumeFactor = viewHeight * VOLUME_ZONE / result.maxVolume;
       }
       let barHalf = theCase * koofX * 0.25;
+      let smaData10 = this.computeSma(dataByCase.slice(start, stop), 1);
+      let smaData2 = this.computeSma(dataByCase.slice(start, stop), 10);
       for (let index = start; index < stop; index++) {
         let candle = dataByCase[index];
         let x = (candle.timestamp - offset) * koofX;
@@ -313,7 +335,12 @@ class BinaryDataWorker {
            L${x + barHalf} ${viewHeight}
            L${x - barHalf} ${viewHeight}`
         ) - 1;
-
+        if (smaData10[index - start]) {
+          result.smaPath10.push(`${result.smaPath10.length === 0 ? 'M' : 'L'}${x} ${(result.high - smaData10[index - start]) * yFactor}`);
+        }
+        if (smaData2[index - start]) {
+          result.smaPath2.push(`${result.smaPath2.length === 0 ? 'M' : 'L'}${x} ${(result.high - smaData2[index - start]) * yFactor}`);
+        }
         rCandle.x = x;
         result.candles.push(rCandle);
       }
