@@ -15,6 +15,13 @@ export default {
           left: 0
         }
       },
+      widths: {
+        navigator: 0,
+        axisX: 0,
+        axisY: 0,
+        crosshair: 0,
+        rightPanel: 70
+      },
       zoom: {
         value: this.intervalWidth / this.initExposition,
         time_parts: this.availableIntervals,
@@ -77,6 +84,12 @@ export default {
     },
     maxZoom () {
       return this.interval.width / (this.minExposition)
+    },
+    axisXOffset () {
+      if (this.candles && this.candles.width) {
+        return this.widths.rightPanel + this.candles.width / 4;
+      }
+      return 90;
     }
   },
   watch: {
@@ -93,7 +106,10 @@ export default {
         this.setView(this.intervalStartOffset, this.initExposition);
       }
     },
-    minExposition () {
+    maxZoom () {
+      this.setView();
+    },
+    minZoom () {
       this.setView();
     },
     'initialSize.height' () {
@@ -133,6 +149,7 @@ export default {
       } else {
         this.height = this.clientHeight;
       }
+      this.widths.navigator = this.widths.crosshair = this.widths.axisY = this.width;
       this.chart.width = this.width;
       this.chart.height = this.height - this.offsets.chartTop - this.offsets.chartBottom;
       if (!this.clientWidth && !this.clientHeight) {
@@ -176,11 +193,13 @@ export default {
       return Math.floor(offset);
     },
     setView (offset = this.interval.offset, exposition = this.exposition) {
-      if ((this.interval.offset + exposition) <= this.interval.width) {
-        this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
-      } else {
-        this.zoom.value = this.rebaseZoom(this.interval.width / (this.interval.width - this.interval.offset));
+      if (this.exposition > this.maxExposition && this.exposition > this.minExposition) {
+        offset = offset + this.exposition - this.maxExposition;
       }
+      if (this.exposition < this.minExposition) {
+        offset = offset + this.exposition - this.minExposition;
+      }
+      this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
       this.interval.offset = this._rebaseOffset(offset);
     },
     onSwipe (params) {
@@ -188,16 +207,13 @@ export default {
     },
     onHandle (data, position) {
       switch (position) {
-        case 'left': {
+        case 'left':
+        case 'right': {
           this.setView(data.offset, data.exposition);
           break;
         }
         case 'center': {
           this.setView(data.offset);
-          break;
-        }
-        case 'right': {
-          this.setView(data.offset, data.exposition);
           break;
         }
         default: break;

@@ -50,6 +50,7 @@ export default {
           break;
         }
         case 'REQUEST_DATA': {
+          this.isLoading = true;
           this.$emit('requestData', message.data.body);
           break;
         }
@@ -88,6 +89,7 @@ export default {
               }
               this.candles = candles;
               this.candles['candles'] = message.data.body.data.candles;
+              this.isLoading = false;
               break;
             }
             default: break;
@@ -95,6 +97,7 @@ export default {
           break;
         }
         case 'EMPTY': {
+          this.isLoading = false;
           this.isEmpty = true;
           break;
         }
@@ -114,7 +117,7 @@ export default {
             type: 'candles',
             offset: this.interval.offset,
             exposition: this.exposition,
-            viewWidth: this.chart.width,
+            viewWidth: this.chart.width - this.axisXOffset,
             viewHeight: this.chart.height
           }
         });

@@ -12,7 +12,7 @@
        @touchcancel.prevent="_onMixinTouch"
        :style="[grabStyle]"
   >
-    <line x1="0" :x2="width" stroke="black" opacity="0.3"/>
+    <line x1="0" :x2="width" stroke="black" stroke-opacity="0.3"/>
     <g :transform="navigatotScale">
       <g :transform="navigatorPathScale">
         <path fill="transparent" stroke="rgba(21,101,192,0.8)" :d="navigatorPath"/>
@@ -23,7 +23,7 @@
         <path fill="rgba(21,101,192,0.8)" stroke="1" :class="{'please-stop-handle': expositionLimitRight}" :d="right"/>
       </g>
     </g>
-    <line x1="0" :x2="width" :y1="height" :y2="height" stroke="black" opacity="0.3"/>
+    <line x1="0" :x2="width" :y1="height" :y2="height" stroke="black" stroke-opacity="0.3"/>
   </svg>
 </template>
 
@@ -195,6 +195,13 @@
           this.grabStyle.cursor = 'ew-resize';
         } else {
           this.grabStyle.cursor = 'default';
+        }
+      },
+      onClick (event) {
+        if (!this.isLeftHandle && !this.isRightHandle && !this.isCenterHandle) {
+          let exposition = this.exposition;
+          let offset = this.convertCurrentX(event.x - this.convertTimestampToX(exposition) / 2);
+          this.$emit('handler', {offset, exposition}, 'center');
         }
       },
       onHover (event) {

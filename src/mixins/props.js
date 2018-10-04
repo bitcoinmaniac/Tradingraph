@@ -66,14 +66,12 @@ export default {
     },
     availableCandleWidths (value) {
       this.candleWidths = value;
-      this.zoom.value = this.rebaseZoom(this.zoom.value);
       if ('onRedraw' in this) {
         this.onRedraw();
       }
     },
     availableIntervals (value) {
       this.zoom.time_parts = value;
-      this.zoom.value = this.rebaseZoom(this.zoom.value);
       if ('onRedraw' in this) {
         this.onRedraw();
       }
