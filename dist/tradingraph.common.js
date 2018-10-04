@@ -4576,9 +4576,6 @@ var lodash_clonedeep = __webpack_require__("cd3f");
 var lodash_clonedeep_default = /*#__PURE__*/__webpack_require__.n(lodash_clonedeep);
 
 // CONCATENATED MODULE: ./src/mixins/screen.js
-
-
-
 /* harmony default export */ var screen = ({
   data: function data() {
     return {
@@ -5077,9 +5074,6 @@ var es6_number_constructor = __webpack_require__("c5f6");
 
 // CONCATENATED MODULE: ./src/mixins/props.js
 
-
-
-
 /* harmony default export */ var props = ({
   props: {
     initialSize: {
@@ -5273,6 +5267,12 @@ var BinaryDataWorker_default = /*#__PURE__*/__webpack_require__.n(BinaryDataWork
                     break;
                   }
 
+                case 'indicatorData':
+                  {
+                    this.renderIndicators();
+                    break;
+                  }
+
                 default:
                   break;
               }
@@ -5332,6 +5332,7 @@ var BinaryDataWorker_default = /*#__PURE__*/__webpack_require__.n(BinaryDataWork
     render: function render() {
       this.renderCandles();
       this.renderAverage();
+      this.renderIndicators();
     },
     renderCandles: function renderCandles() {
       if (this.chart.width && this.chart.height) {
@@ -5353,6 +5354,18 @@ var BinaryDataWorker_default = /*#__PURE__*/__webpack_require__.n(BinaryDataWork
         task: 'RENDER',
         params: {
           type: 'average',
+          viewWidth: this.width,
+          viewHeight: this.sizes.navigator.height
+        }
+      });
+    },
+    renderIndicators: function renderIndicators() {
+      this.workers.binaryWorker.postMessage({
+        task: 'RENDER',
+        params: {
+          type: 'indicators',
+          offset: this.interval.offset,
+          exposition: this.exposition,
           viewWidth: this.width,
           viewHeight: this.sizes.navigator.height
         }
@@ -5744,9 +5757,6 @@ var Crosshairvue_type_template_id_31b0d864_scoped_true_staticRenderFns = []
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./src/components/Intercative/Crosshair.vue?vue&type=script&lang=js&
 
-
-
-
 //
 //
 //
@@ -5849,9 +5859,6 @@ var Navigatorvue_type_template_id_571c60d0_scoped_true_staticRenderFns = []
 var es6_string_fixed = __webpack_require__("d263");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./src/components/Navigator/Navigator.vue?vue&type=script&lang=js&
-
-
-
 
 
 //

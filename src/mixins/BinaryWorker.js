@@ -66,6 +66,10 @@ export default {
                 this.renderAverage();
                 break;
               }
+              case 'indicatorData': {
+                this.renderIndicators();
+                break;
+              }
               default: break;
             }
           }
@@ -107,6 +111,7 @@ export default {
     render () {
       this.renderCandles();
       this.renderAverage();
+      this.renderIndicators();
     },
     renderCandles () {
       if (this.chart.width && this.chart.height) {
@@ -128,6 +133,18 @@ export default {
         task: 'RENDER',
         params: {
           type: 'average',
+          viewWidth: this.width,
+          viewHeight: this.sizes.navigator.height
+        }
+      });
+    },
+    renderIndicators () {
+      this.workers.binaryWorker.postMessage({
+        task: 'RENDER',
+        params: {
+          type: 'indicators',
+          offset: this.interval.offset,
+          exposition: this.exposition,
           viewWidth: this.width,
           viewHeight: this.sizes.navigator.height
         }
