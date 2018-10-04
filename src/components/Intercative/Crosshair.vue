@@ -1,5 +1,5 @@
 <template>
-  <g v-if="isActiveArea && interactive.isHover && interactive.hoverCandle" :transform="`translate(0, ${chartOffset})`">
+  <g v-if="isActiveArea && interactive.cursor === 'default' && interactive.isHover && interactive.hoverCandle" :transform="`translate(0, ${chartOffset})`">
     <path class="cross" :d="crossPath"/>
     <g class="price-label" :transform="`translate(${chartWidth}, ${realY})`">
       <path d="M-70 -7 L0 -7 L0 0 L0 7 L-70 7"/>

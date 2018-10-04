@@ -15,6 +15,7 @@ export default {
           this.eventsMouse.scrolling.layerX = event.layerX;
           this.eventsMouse.scrolling.layerY = event.layerY;
           this.eventsMouse.scrolling.isScrolling = true;
+          this.eventsMouse.scrolling.isHover = true;
           if ('onClick' in this) {
             this.onClick({
               x : event.clientX - offsets.left,
@@ -44,9 +45,9 @@ export default {
             }
           }
           break;
-        case 'mouseup':
         case 'mouseleave':
           this.eventsMouse.scrolling.isHover = false;
+        case 'mouseup':
           this.eventsMouse.scrolling.isScrolling = false;
           break;
       }
