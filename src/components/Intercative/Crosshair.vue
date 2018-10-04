@@ -1,8 +1,8 @@
 <template>
-  <g v-if="interactive.hoverCandle" :transform="`translate(0, ${chartOffset})`">
+  <g v-if="isActiveArea && interactive.cursor === 'default' && interactive.isHover && interactive.hoverCandle" :transform="`translate(0, ${chartOffset})`">
     <path class="cross" :d="crossPath"/>
     <g class="price-label" :transform="`translate(${chartWidth}, ${realY})`">
-      <path d="M-70 -10 L0 -10 L0 0 L0 10 L-70 10"/>
+      <path d="M-70 -7 L0 -7 L0 0 L0 7 L-70 7"/>
       <text x="-6" :y="4" :font-size="10" style="font-family: 'Roboto', monospace">{{currentPrice | price(fractionLimit)}}</text>
     </g>
     <g class="moment-label" :transform="`translate(${interactive.cursorX}, ${chartHeight})`">
@@ -59,11 +59,46 @@
       },
       currentPrice() {
         return this.candles.low + (this.candles.high - this.candles.low) * (this.chartHeight - this.realY) / this.chartHeight;
+      },
+      isActiveArea () {
+        return this.realY > 0 && this.realY < this.chartHeight;
       }
     }
   };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+  .cross {
+    fill: none;
+    stroke: rgb(51, 51, 51);
+    stroke-width: 1;
+    stroke-dasharray: 1, 3;
+    visibility: visible;
+  }
 
+  .price-label {
+    path {
+      fill: black;
+      stroke: black;
+      opacity: 1;
+    }
+    text {
+      stroke: none;
+      fill: #FFF;
+      text-anchor: end;
+    }
+  }
+
+  .moment-label {
+    path {
+      fill: #333;
+      stroke: #333;
+      opacity: 1;
+    }
+    text {
+      stroke: none;
+      fill: #fff;
+      text-anchor: middle;
+    }
+  }
 </style>

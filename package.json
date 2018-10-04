@@ -1,6 +1,6 @@
 {
   "name": "tradingraph",
-  "version": "1.0.25",
+  "version": "1.1.0",
   "main": "dist/tradingraph.common.js",
   "module": "dist/tradingraph.umd.js",
   "scripts": {
