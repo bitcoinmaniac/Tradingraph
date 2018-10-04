@@ -112,6 +112,7 @@
           hoverCandle: null,
           cursorX: 0,
           cursorY: 0,
+          isHover: false,
           fraction: {
             limit: 4,
             nominal: 4
@@ -168,6 +169,9 @@
       },
       'eventsMouse.scrolling.isScrolling' (value) {
         this.interactive.cursor = value ? 'grabbing' : 'default';
+      },
+      'eventsMouse.scrolling.isHover' (value) {
+        this.interactive.isHover = value;
       }
     },
     created () {
@@ -252,40 +256,6 @@
     .candles-path-negative.hover {
       stroke: rgba(230, 47, 47, 1);
       fill: rgba(255, 60, 60, 1);
-    }
-
-    .cross {
-      fill: none;
-      stroke: rgb(51, 51, 51);
-      stroke-width: 1;
-      stroke-dasharray: 1, 3;
-      visibility: visible;
-    }
-
-    .price-label {
-      path {
-        fill: #440000;
-        stroke: #440000;
-        opacity: 0.5;
-      }
-      text {
-        stroke: none;
-        fill: #fff;
-        text-anchor: end;
-      }
-    }
-
-    .moment-label {
-      path {
-        fill: #333;
-        stroke: #333;
-        opacity: 0.5;
-      }
-      text {
-        stroke: none;
-        fill: #fff;
-        text-anchor: middle;
-      }
     }
 
   }
