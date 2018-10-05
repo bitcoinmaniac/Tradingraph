@@ -1,6 +1,21 @@
 <template>
   <div>
+    <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+      <symbol id="gear" viewBox="0 0 13 13">
+        <path d="M8.224,965.559H4.988l-.265-1.486a1.064,1.064,0,0,1-.424-.212l-1.22.9L.8,962.482l.9-1.22a1.067,1.067,0,0,0-.212-.424L0,960.572v-3.237l1.486-.265c.053-.159.106-.265.159-.424l-.9-1.22,2.282-2.281,1.22.9a3.681,3.681,0,0,0,.424-.159l.212-1.486H8.118l.212,1.486a3.636,3.636,0,0,1,.424.159l1.22-.9,2.282,2.281-.9,1.22a3.654,3.654,0,0,0,.159.424l1.486.212v3.237l-1.486.212a1.885,1.885,0,0,1-.212.478l.9,1.22L9.922,964.71l-1.22-.9a1.066,1.066,0,0,0-.424.212ZM5.89,964.5H7.322l.212-1.273.318-.106a4.112,4.112,0,0,0,.849-.371l.318-.159,1.008.743,1.008-1.008-.743-1.008.159-.318a3.247,3.247,0,0,0,.371-.9l.106-.318,1.22-.159v-1.433l-1.22-.159-.106-.318a4.105,4.105,0,0,0-.371-.849l-.159-.265.743-1.008-1.008-1.008-1.008.743-.265-.159a5.892,5.892,0,0,0-.849-.371l-.318-.106-.159-1.22H6l-.159,1.22-.318.106a4.105,4.105,0,0,0-.849.371l-.265.159-1.22-.743-1.008,1.008.743,1.008-.159.265a2.344,2.344,0,0,0-.318.849l-.106.318-1.273.212v1.433l1.273.212.106.318a4.109,4.109,0,0,0,.371.849l.159.318-.743,1.008,1.008,1.008,1.008-.743.318.159a5.892,5.892,0,0,0,.849.372l.318.106Zm.69-1.963a3.555,3.555,0,1,1,3.555-3.555A3.555,3.555,0,0,1,6.58,962.535Zm0-6.049a2.494,2.494,0,1,0,2.494,2.494A2.491,2.491,0,0,0,6.58,956.486Z" transform="translate(0 -952.4)"/>
+      </symbol>
+    </svg>
+
     <div>
+      <div class="menu">
+        <button class="menu__button" @click="toogleMenu"> Indicators </button>
+      </div>
+      <div v-if="isIndicatorsOpen" class="indicators">
+        <div v-for="indicator in indicators" style="display: flex; flex-direction: row">
+          <p>{{indicator.name}}</p>
+          <input v-for="(input, key) in indicator.values" type="number" v-model="indicator.values[key]"/>
+        </div>
+      </div>
       <svg class="crypto-chart"
            :view-box.camel="[0, 0, width ? width : 0, height ? height : 0]"
            :width="width ? width : 0"
@@ -42,8 +57,7 @@
             <path class="candles-path-positive" :d="positiveCandlesPath"/>
             <path class="candles-path-negative" :d="negativeCandlesPath"/>
             <path class="candles-path-volume" :d="volumeCandlesPath"/>
-            <path fill="transparent" stroke="rgba(21,101,192,1)" :d="smaPath10"/>
-            <path fill="transparent" stroke="rgba(21,101,192,1)" :d="smaPath2"/>
+            <path v-for="indicatorPath in indicatorsPaths" fill="transparent" stroke="rgba(21,101,192,1)" :d="indicatorPath"/>
             <g v-if="interactive.hoverCandle">
               <path class="candles-path-volume hover"
                     :d="candles.volumePath[interactive.hoverCandle.volumePathIndex]"/>
@@ -109,6 +123,7 @@
         isEmpty: false,
         isLoading: false,
         average: [],
+        isIndicatorsOpen: false,
         interactive: {
           cursor: 'default',
           hoverCandle: null,
@@ -120,6 +135,20 @@
             nominal: 4
           }
         },
+        indicators: [{
+          name: 'Sma1',
+          type: 'sma',
+          values: {
+            window: 7
+          }
+        }, {
+          name: 'Sma2',
+          type: 'sma',
+          values: {
+            window: 14
+          }
+        }],
+        indicatorsData: {},
         interactiveTool: {
           fontSize: 10
         }
@@ -150,12 +179,6 @@
         }
         return result.join(' ');
       },
-      smaPath10 () {
-        return this.candles.smaPath10.join(' ');
-      },
-      smaPath2 () {
-        return this.candles.smaPath2.join(' ');
-      },
       fontSizeAxisY() {
         return this.fontHeight < (this.chart.offset.left / 6) ? this.chart.offset.left / 6 : this.fontHeight;
       },
@@ -175,11 +198,22 @@
         },
         deep: true
       },
+      indicatorsData: {
+        handler () {
+          this.indicatorsPaths = Object.keys(this.indicatorsData).map(key => {
+            return this.indicatorsData[key].join(' ');
+          })
+        },
+        deep: true
+      },
       'eventsMouse.scrolling.isScrolling' (value) {
         this.interactive.cursor = value ? 'grabbing' : 'default';
       },
       'eventsMouse.scrolling.isHover' (value) {
         this.interactive.isHover = value;
+      },
+      isMenuOpen (value) {
+        console.log(value);
       }
     },
     created () {
@@ -217,13 +251,37 @@
       },
       hoverColor (open, close) {
         return `fill: ${open > close ? 'rgba(211, 47, 47, 0.8)' : 'rgba(104, 159, 56, 0.8)'}`;
+      },
+      toogleMenu () {
+        this.isIndicatorsOpen = !this.isIndicatorsOpen;
+        console.log('ttogle!');
       }
     }
   };
 </script>
 
 <style lang="scss">
-
+  .menu {
+    margin: 8px;
+    position: relative;
+    &__button {
+      background: none;
+      border: none;
+      border-radius: 4px;
+    }
+  }
+  .indicators {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    margin: 0 8px;
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px black;
+    font-size: 12px;
+    padding: 8px;
+  }
   .crypto-chart {
     .axis-y, .axis-x, .axis-border {
       shape-rendering: crispEdges;

@@ -82,6 +82,7 @@ export default {
               if (this.average.minTimestamp) {
                 this.interval.firstPoint = this.average.minTimestamp;
               }
+              this.renderIndicators();
               break;
             }
             case 'candles': {
@@ -94,6 +95,10 @@ export default {
               this.candles = candles;
               this.candles['candles'] = message.data.body.data.candles;
               this.isLoading = false;
+              break;
+            }
+            case 'indicators': {
+              this.indicatorsData = message.data.body.data.indicators;
               break;
             }
             default: break;
@@ -111,7 +116,6 @@ export default {
     render () {
       this.renderCandles();
       this.renderAverage();
-      this.renderIndicators();
     },
     renderCandles () {
       if (this.chart.width && this.chart.height) {
@@ -145,7 +149,8 @@ export default {
           type: 'indicators',
           offset: this.interval.offset,
           exposition: this.exposition,
-          viewWidth: this.width,
+          indicators: this.indicators,
+          viewWidth: this.width - this.axisXOffset,
           viewHeight: this.sizes.navigator.height
         }
       });

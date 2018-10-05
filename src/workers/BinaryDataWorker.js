@@ -258,8 +258,7 @@ class BinaryDataWorker {
       candlesPositivePath: [],
       candlesNegativePath: [],
       volumePath: [],
-      smaPath10: [],
-      smaPath2: []
+      indicators: {}
     };
     let theCase = this.findCandleWidthForUse(exposition, viewWidth);
     let koofX = viewWidth / exposition;
@@ -308,8 +307,11 @@ class BinaryDataWorker {
         yVolumeFactor = viewHeight * VOLUME_ZONE / result.maxVolume;
       }
       let barHalf = theCase * koofX * 0.25;
-      let smaData10 = this.computeSma(dataByCase.slice(start, stop), 10);
-      let smaData2 = this.computeSma(dataByCase.slice(start, stop), 1);
+      // if (indicators && indicators.length) {
+      //   let computedIndicators = this.computeIndicators(start, stop, dataByCase, indicators);
+      //   result.indicators = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: koofX, y: yFactor, high: result.high});
+      //   // console.log(result.indicators);
+      // }
       for (let index = start; index < stop; index++) {
         let candle = dataByCase[index];
         let x = (candle.timestamp - offset) * koofX;
@@ -336,9 +338,6 @@ class BinaryDataWorker {
            L${x - barHalf} ${viewHeight}`
         ) - 1;
 
-        result.smaPath10.push(`${result.smaPath10.length === 0 ? 'M' : 'L'}${x} ${(result.high - (smaData10[index - start] || candle.close)) * yFactor}`);
-        result.smaPath2.push(`${result.smaPath2.length === 0 ? 'M' : 'L'}${x} ${(result.high - (smaData2[index - start] || candle.close)) * yFactor}`);
-
         rCandle.x = x;
         result.candles.push(rCandle);
       }
@@ -360,6 +359,117 @@ class BinaryDataWorker {
     }
     this.data.lastResolution = theCase;
     this.sendMessage('RENDERED', { type: 'candles', data: result });
+  }
+  computeIndicators (start, stop, array, indicators) {
+    let fullArrayLength = array.length;
+    let result = [];
+    for (let i = 0, len = indicators.length; i < len; i++ ) {
+      let computeResult = null;
+      switch (indicators[i].type) {
+        case 'sma' : {
+          let weightedStart = start - indicators[i].values.window > 0 ? start - indicators[i].values.window : 0;
+          let weightedStop = stop + indicators[i].values.window < fullArrayLength ? stop + indicators[i].values.window : fullArrayLength - 1;
+          computeResult = this.computeSma(array.slice(weightedStart, weightedStop), indicators[i].values.window);
+          break;
+        }
+        default: break;
+      }
+      result.push({name: indicators[i].name, values: indicators[i].values, type: indicators[i].type, result: computeResult});
+    }
+    return result;
+  }
+  placeIndicatorsByPoint (indicators, start, stop, array, offset, factors) {
+    let result = {};
+    if (indicators.length) {
+      let indicatorsLength = indicators.length;
+      while (--indicatorsLength >= 0) {
+        result[indicators[indicatorsLength].name] = [];
+      }
+      for (let index = start; index < stop; index++) {
+        let candle = array[index];
+        let x = (candle.timestamp - offset) * factors.x;
+        let xDiff = index > 0 ? x - (array[index - 1].timestamp - offset) * factors.x : 0;
+        let indicatorsIndex = indicators.length;
+        while (--indicatorsIndex >= 0) {
+          switch (indicators[indicatorsIndex].type) {
+            case 'sma' : {
+              let window = indicators[indicatorsIndex].values.window;
+              let sma = indicators[indicatorsIndex].result;
+              let pointY = (factors.high - (sma[index - start + window] || candle.close)) * factors.y;
+              if (result[indicators[indicatorsIndex].name].length) {
+                let smaPreviousPointY = (factors.high - (sma[index - start - 1 + 7] || candle.close)) * factors.y;
+                if (smaPreviousPointY > pointY || smaPreviousPointY < pointY) {
+                  smaPreviousPointY = smaPreviousPointY > pointY ? pointY + 1 : pointY - 1;
+                }
+                result[indicators[indicatorsIndex].name].push(`S ${x - xDiff / 4} ${smaPreviousPointY}, ${x} ${pointY}`);
+              } else {
+                result[indicators[indicatorsIndex].name].push(`M ${x} ${pointY}`);
+              }
+            }
+          }
+        }
+      }
+    }
+    return result;
+  }
+  renderIndicators (offset, exposition, indicators, viewWidth, viewHeight) {
+    let result = {};
+    let theCase = this.findCandleWidthForUse(exposition, viewWidth);
+    let koofX = viewWidth / exposition;
+    result.width = theCase * koofX;
+    let dataByCase = this.data.tree[theCase];
+    let start = 0;
+    if (dataByCase) {
+      let stop = dataByCase.length;
+      if (offset > this.data.start) {
+        start = -Math.floor((offset - this.data.start) / theCase);
+      }
+
+      for (let index = -start; index < stop; index++) {
+        let candle = dataByCase[index];
+        if (candle.timestamp <= offset) {
+          continue;
+        } else if (candle.timestamp > offset + exposition) {
+          stop = index;
+          break;
+        } else if (start < 0) {
+          start = index;
+        }
+        if ((result.low == null) || (result.low > candle.low)) {
+          result.low = candle.low;
+        }
+        if ((result.high == null) || (result.high < candle.high)) {
+          result.high = candle.high;
+        }
+        if ((result.maxVolume == null) || (result.maxVolume < candle.volume)) {
+          result.maxVolume = candle.volume;
+        }
+      }
+
+      start = Math.abs(start);
+      if (stop == null) {
+        stop = dataByCase.length;
+      }
+      let yFactor = 0;
+      if (result.high !== result.low) {
+        yFactor = viewHeight / (result.high - result.low);
+      } else {
+        yFactor = viewHeight / (result.high * 1.1 - result.low);
+      }
+
+      if (indicators && indicators.length) {
+        let computedIndicators = this.computeIndicators(start, stop, dataByCase, indicators);
+        result = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: koofX, y: yFactor, high: result.high});
+        // console.log(result.indicators);
+      }
+    }
+
+    this.sendMessage('RENDERED', {
+      type: 'indicators',
+      data: {
+        indicators: result
+      }
+    });
   }
   returnEmptyData () {
     this.sendMessage('RENDERED', {
@@ -474,6 +584,10 @@ class BinaryDataWorker {
           }
           case 'candles': {
             this.renderCandles(params.offset, params.exposition, params.viewWidth, params.viewHeight);
+            break;
+          }
+          case 'indicators': {
+            this.renderIndicators(params.offset, params.exposition, params.indicators, params.viewWidth, params.viewHeight);
             break;
           }
           default: break;
