@@ -151,7 +151,7 @@ export default {
           exposition: this.exposition,
           indicators: this.indicators,
           viewWidth: this.width - this.axisXOffset,
-          viewHeight: this.sizes.navigator.height
+          viewHeight: this.chart.height
         }
       });
     },

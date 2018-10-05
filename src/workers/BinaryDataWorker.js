@@ -307,11 +307,6 @@ class BinaryDataWorker {
         yVolumeFactor = viewHeight * VOLUME_ZONE / result.maxVolume;
       }
       let barHalf = theCase * koofX * 0.25;
-      // if (indicators && indicators.length) {
-      //   let computedIndicators = this.computeIndicators(start, stop, dataByCase, indicators);
-      //   result.indicators = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: koofX, y: yFactor, high: result.high});
-      //   // console.log(result.indicators);
-      // }
       for (let index = start; index < stop; index++) {
         let candle = dataByCase[index];
         let x = (candle.timestamp - offset) * koofX;
@@ -421,6 +416,8 @@ class BinaryDataWorker {
     let start = 0;
     if (dataByCase) {
       let stop = dataByCase.length;
+      let high = null;
+      let low = null;
       if (offset > this.data.start) {
         start = -Math.floor((offset - this.data.start) / theCase);
       }
@@ -435,14 +432,11 @@ class BinaryDataWorker {
         } else if (start < 0) {
           start = index;
         }
-        if ((result.low == null) || (result.low > candle.low)) {
-          result.low = candle.low;
+        if ((low == null) || (low > candle.low)) {
+          low = candle.low;
         }
-        if ((result.high == null) || (result.high < candle.high)) {
-          result.high = candle.high;
-        }
-        if ((result.maxVolume == null) || (result.maxVolume < candle.volume)) {
-          result.maxVolume = candle.volume;
+        if ((high == null) || (high < candle.high)) {
+          high = candle.high;
         }
       }
 
@@ -451,15 +445,14 @@ class BinaryDataWorker {
         stop = dataByCase.length;
       }
       let yFactor = 0;
-      if (result.high !== result.low) {
-        yFactor = viewHeight / (result.high - result.low);
+      if (high !== low) {
+        yFactor = viewHeight / (high - low);
       } else {
-        yFactor = viewHeight / (result.high * 1.1 - result.low);
+        yFactor = viewHeight / (high * 1.1 - low);
       }
-
       if (indicators && indicators.length) {
         let computedIndicators = this.computeIndicators(start, stop, dataByCase, indicators);
-        result = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: koofX, y: yFactor, high: result.high});
+        result = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: koofX, y: yFactor, high: high});
         // console.log(result.indicators);
       }
     }
