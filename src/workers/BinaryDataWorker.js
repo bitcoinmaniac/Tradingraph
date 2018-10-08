@@ -312,7 +312,7 @@ class BinaryDataWorker {
     let stddev = this.computeStdev(array, window);
     let upper = this.pointwise((a, b) => a + b * mult, middle, stddev);
     let lower = this.pointwise((a, b) => a - b * mult, middle, stddev);
-    return {lower, middle, upper};
+    return {lower, upper};
   }
   average (arr) {
     return arr.reduce((sum, value) => sum + value, 0) / arr.length;
@@ -472,7 +472,7 @@ class BinaryDataWorker {
         case 'bolinger' : {
           let window = +indicators[indicator].values.window;
           result[indicator].data = this.computeBolinger(array.slice(0, stop), window);
-          result[indicator].multiplyLinesData = { lower: [], middle: [], upper: [] };
+          result[indicator].multiplyLinesData = { lower: [], upper: [] };
           break;
         }
         default: break;
@@ -509,7 +509,6 @@ class BinaryDataWorker {
         }
       }
     }
-    console.log(indicators);
     for (let indicator in indicators) {
       if (indicators[indicator].dataByPoint.length) {
         let draw = new svgDraw(indicators[indicator].dataByPoint);
