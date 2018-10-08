@@ -1,6 +1,53 @@
 const MIN_WIDTH_CANDLE = 3;
 const VOLUME_ZONE = 0.3;    // Volume area
+class svgDraw {
+  constructor (points) {
+    this.points = points;
+    this.smoothing = 0.2;
+  }
+  line (pointA, pointB)  {
+    const lengthX = pointB[0] - pointA[0];
+    const lengthY = pointB[1] - pointA[1];
+    return {
+      length: Math.sqrt(Math.pow(lengthX, 2) + Math.pow(lengthY, 2)),
+      angle: Math.atan2(lengthY, lengthX)
+    };
+  }
+  controlPoint (current, previous, next, reverse) {
+    // When 'current' is the first or last point of the array
+    // 'previous' or 'next' don't exist.
+    // Replace with 'current'
+    const p = previous || current;
+    const n = next || current;
 
+    // Properties of the opposed-line
+    const o = this.line(p, n);
+
+    // If is end-control-point, add PI to the angle to go backward
+    const angle = o.angle + (reverse ? Math.PI : 0);
+    const length = o.length * this.smoothing;
+
+    // The control point position is relative to the current point
+    const x = current[0] + Math.cos(angle) * length;
+    const y = current[1] + Math.sin(angle) * length;
+    return [x, y];
+  }
+  bezierCommand (point, i, a) {
+    // start control point
+    const cps = this.controlPoint(a[i - 1], a[i - 2], point);
+
+    // end control point
+    const cpe = this.controlPoint(point, a[i - 1], a[i + 1], true);
+    return `C ${cps[0]},${cps[1]} ${cpe[0]},${cpe[1]} ${point[0]},${point[1]}`;
+  }
+  drawSvgPath () {
+    // build the d attributes by looping over the points
+    return this.points.reduce(
+      (acc, point, i, a) => i === 0 ? `M ${point[0]},${point[1]}` : `${acc} ${this.bezierCommand(point, i, a)}`,
+      ''
+    );
+  }
+}
 class BinaryDataWorker {
   constructor () {
     this.data = {
@@ -356,15 +403,16 @@ class BinaryDataWorker {
     this.sendMessage('RENDERED', { type: 'candles', data: result });
   }
   computeIndicators (start, stop, array, indicators) {
-    let fullArrayLength = array.length;
+    // let fullArrayLength = array.length;
     let result = [];
     for (let i = 0, len = indicators.length; i < len; i++ ) {
       let computeResult = null;
       switch (indicators[i].type) {
         case 'sma' : {
-          let weightedStart = start - indicators[i].values.window > 0 ? start - indicators[i].values.window : 0;
-          let weightedStop = stop + indicators[i].values.window < fullArrayLength ? stop + indicators[i].values.window : fullArrayLength - 1;
-          computeResult = this.computeSma(array.slice(weightedStart, weightedStop), indicators[i].values.window);
+          let window = +indicators[i].values.window;
+          let weightedStart = start - window > 0 ? start - window : 0;
+          // let weightedStop = stop + window < fullArrayLength ? stop + window : fullArrayLength - 1;
+          computeResult = this.computeSma(array.slice(weightedStart, stop), window);
           break;
         }
         default: break;
@@ -377,8 +425,8 @@ class BinaryDataWorker {
     let result = {};
     if (indicators.length) {
       let indicatorsLength = indicators.length;
-      while (--indicatorsLength >= 0) {
-        result[indicators[indicatorsLength].name] = [];
+      for (let i = 0; i < indicatorsLength; i++) {
+        result[indicators[i].name] = [];
       }
       for (let index = start; index < stop; index++) {
         let candle = array[index];
@@ -388,20 +436,29 @@ class BinaryDataWorker {
         while (--indicatorsIndex >= 0) {
           switch (indicators[indicatorsIndex].type) {
             case 'sma' : {
-              let window = indicators[indicatorsIndex].values.window;
+              // let window = +indicators[indicatorsIndex].values.window;
+              let indicatorLength = indicators[indicatorsIndex].result.length;
+              let indicatorDif = indicatorLength - (stop - start);
               let sma = indicators[indicatorsIndex].result;
-              let pointY = (factors.high - (sma[index - start + window] || candle.close)) * factors.y;
-              if (result[indicators[indicatorsIndex].name].length) {
-                let smaPreviousPointY = (factors.high - (sma[index - start - 1 + 7] || candle.close)) * factors.y;
-                if (smaPreviousPointY > pointY || smaPreviousPointY < pointY) {
-                  smaPreviousPointY = smaPreviousPointY > pointY ? pointY + 1 : pointY - 1;
-                }
-                result[indicators[indicatorsIndex].name].push(`S ${x - xDiff / 4} ${smaPreviousPointY}, ${x} ${pointY}`);
-              } else {
-                result[indicators[indicatorsIndex].name].push(`M ${x} ${pointY}`);
-              }
+              let pointY = (factors.high - (sma[index - start + indicatorDif] || candle.close)) * factors.y;
+              result[indicators[indicatorsIndex].name].push([x, pointY]);
+              // if (result[indicators[indicatorsIndex].name].length) {
+              //   let smaPreviousPointY = (factors.high - (sma[index - start - 1 + indicatorDif] || candle.close)) * factors.y;
+              //   if (smaPreviousPointY > pointY || smaPreviousPointY < pointY) {
+              //     smaPreviousPointY = smaPreviousPointY > pointY ? pointY + 1 : pointY - 1;
+              //   }
+              //   result[indicators[indicatorsIndex].name].push(`S ${x - xDiff / 4} ${smaPreviousPointY}, ${x} ${pointY}`);
+              // } else {
+              //   result[indicators[indicatorsIndex].name].push(`M ${x} ${pointY}`);
+              // }
             }
           }
+        }
+      }
+      for (let i = 0; i < indicatorsLength; i++) {
+        if (result[indicators[i].name]) {
+          let draw = new svgDraw(result[indicators[i].name]);
+          result[indicators[i].name] = draw.drawSvgPath();
         }
       }
     }
@@ -410,8 +467,7 @@ class BinaryDataWorker {
   renderIndicators (offset, exposition, indicators, viewWidth, viewHeight) {
     let result = {};
     let theCase = this.findCandleWidthForUse(exposition, viewWidth);
-    let koofX = viewWidth / exposition;
-    result.width = theCase * koofX;
+    let xFactor = viewWidth / exposition;
     let dataByCase = this.data.tree[theCase];
     let start = 0;
     if (dataByCase) {
@@ -452,7 +508,7 @@ class BinaryDataWorker {
       }
       if (indicators && indicators.length) {
         let computedIndicators = this.computeIndicators(start, stop, dataByCase, indicators);
-        result = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: koofX, y: yFactor, high: high});
+        result = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: xFactor, y: yFactor, high: high});
         // console.log(result.indicators);
       }
     }

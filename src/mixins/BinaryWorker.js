@@ -35,6 +35,7 @@ export default {
     let binaryWorker = new BinaryWorker();
     binaryWorker.onmessage = this.onBinaryWorkerMessage;
     binaryWorker.redraw = this.render;
+    binaryWorker.renderIndicators = this.renderIndicators;
     this.workers.binaryWorker = binaryWorker;
     this.workers.binaryWorker.requestedParams = [];
   },
@@ -60,6 +61,7 @@ export default {
             switch (message.data.body.type[i]) {
               case 'candleData': {
                 this.renderCandles();
+                this.renderIndicators();
                 break;
               }
               case 'averageData': {
@@ -82,7 +84,6 @@ export default {
               if (this.average.minTimestamp) {
                 this.interval.firstPoint = this.average.minTimestamp;
               }
-              this.renderIndicators();
               break;
             }
             case 'candles': {
@@ -99,6 +100,14 @@ export default {
             }
             case 'indicators': {
               this.indicatorsData = message.data.body.data.indicators;
+              this.indicatorsPaths.splice(0);
+              this.indicatorsPaths = Object.keys(this.indicatorsData).map(key => {
+                if (this.indicatorsData[key]) {
+                  return this.indicatorsData[key];
+                } else {
+                  return '';
+                }
+              });
               break;
             }
             default: break;
@@ -116,6 +125,7 @@ export default {
     render () {
       this.renderCandles();
       this.renderAverage();
+      this.renderIndicators();
     },
     renderCandles () {
       if (this.chart.width && this.chart.height) {

@@ -149,6 +149,7 @@
           }
         }],
         indicatorsData: {},
+        indicatorsPaths: [],
         interactiveTool: {
           fontSize: 10
         }
@@ -198,22 +199,27 @@
         },
         deep: true
       },
-      indicatorsData: {
+      indicators: {
         handler () {
-          this.indicatorsPaths = Object.keys(this.indicatorsData).map(key => {
-            return this.indicatorsData[key].join(' ');
-          })
+          for (let worker in this.workers) {
+            this.workers[worker].renderIndicators();
+          }
         },
         deep: true
       },
+      // indicatorsData: {
+      //   handler () {
+      //     this.indicatorsPaths = Object.keys(this.indicatorsData).map(key => {
+      //       return this.indicatorsData[key].join(' ');
+      //     })
+      //   },
+      //   deep: true
+      // },
       'eventsMouse.scrolling.isScrolling' (value) {
         this.interactive.cursor = value ? 'grabbing' : 'default';
       },
       'eventsMouse.scrolling.isHover' (value) {
         this.interactive.isHover = value;
-      },
-      isMenuOpen (value) {
-        console.log(value);
       }
     },
     created () {
