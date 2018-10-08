@@ -13,8 +13,10 @@
       <div v-if="isIndicatorsOpen" class="indicators">
         <div v-for="indicator in indicators" style="display: flex; flex-direction: row">
           <p>{{indicator.name}}</p>
-          <input v-for="(input, key) in indicator.values" type="number" v-model="indicator.values[key]"/>
+          <input v-for="(input, key) in indicator.values" type="number" v-model="indicator.values[key]" :key="key"/>
+          <!--<input type="color" v-model="indicator.params.color"/>-->
         </div>
+        <button @click="addIndicator">+</button>
       </div>
       <svg class="crypto-chart"
            :view-box.camel="[0, 0, width ? width : 0, height ? height : 0]"
@@ -57,7 +59,7 @@
             <path class="candles-path-positive" :d="positiveCandlesPath"/>
             <path class="candles-path-negative" :d="negativeCandlesPath"/>
             <path class="candles-path-volume" :d="volumeCandlesPath"/>
-            <path v-for="indicatorPath in indicatorsPaths" fill="transparent" stroke="rgba(21,101,192,1)" :d="indicatorPath"/>
+            <indicators-render :indicatorData="indicatorDisplayableData"></indicators-render>
             <g v-if="interactive.hoverCandle">
               <path class="candles-path-volume hover"
                     :d="candles.volumePath[interactive.hoverCandle.volumePathIndex]"/>
@@ -97,6 +99,7 @@
   import AxisY from "./components/Axis/AxisY";
   import Crosshair from "./components/Intercative/Crosshair"
   import Navigator from "./components/Navigator/Navigator"
+  import IndicatorsRender from "./components/Indicators/IndicatorsRender"
 
   export default {
     name: 'crypto-chart',
@@ -114,7 +117,8 @@
       AxisX,
       AxisY,
       Crosshair,
-      Navigator
+      Navigator,
+      IndicatorsRender
     },
     data() {
       return {
@@ -135,19 +139,57 @@
             nominal: 4
           }
         },
-        indicators: [{
-          name: 'Sma1',
-          type: 'sma',
-          values: {
-            window: 7
+        indicators: {
+          'Sma1': {
+            name: 'Sma',
+            type: 'sma',
+            enabled: true,
+            params: {
+              color: '#637eac'
+            },
+            values: {
+              window: 7
+            },
+            data: []
+          },
+          'Sma2': {
+            name: 'Sma',
+            type: 'sma',
+            enabled: false,
+            params: {
+              color: '#637eac'
+            },
+            values: {
+              window: 7
+            },
+            data: []
+          },
+          'Ema1': {
+            name: 'Ema',
+            type: 'ema',
+            enabled: true,
+            params: {
+              color: '#5eac6a'
+            },
+            values: {
+              window: 7
+            },
+            data: []
+          },
+          'Bolinger1': {
+            name: 'Bolinger',
+            type: 'bolinger',
+            enabled: true,
+            params: {
+              color: ['#90ab18', '#ab9e2c', '#90ab18']
+            },
+            values: {
+              window: 7
+            },
+            data: []
           }
-        }, {
-          name: 'Sma2',
-          type: 'sma',
-          values: {
-            window: 14
-          }
-        }],
+        },
+        indicatorDisplayableData: [],
         indicatorsData: {},
         indicatorsPaths: [],
         interactiveTool: {
@@ -231,6 +273,9 @@
       }
     },
     methods: {
+      addIndicator () {
+        console.log('add!');
+      },
       onRedraw() {
         for (let worker in this.workers) {
           this.workers[worker].redraw();
@@ -284,7 +329,7 @@
     margin: 0 8px;
     border: none;
     border-radius: 4px;
-    box-shadow: 0 1px 1px black;
+    box-shadow: 0 0 4px gray;
     font-size: 12px;
     padding: 8px;
   }

@@ -99,11 +99,10 @@ export default {
               break;
             }
             case 'indicators': {
-              this.indicatorsData = message.data.body.data.indicators;
-              this.indicatorsPaths.splice(0);
-              this.indicatorsPaths = Object.keys(this.indicatorsData).map(key => {
-                if (this.indicatorsData[key]) {
-                  return this.indicatorsData[key];
+              this.indicatorDisplayableData.splice(0);
+              this.indicatorDisplayableData = Object.keys(message.data.body.data.indicators).map(key => {
+                if (message.data.body.data.indicators[key]) {
+                  return message.data.body.data.indicators[key];
                 } else {
                   return '';
                 }
