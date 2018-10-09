@@ -117,6 +117,9 @@ export default {
     },
     'initialSize.width' () {
       this._onResize();
+    },
+    reloadCounter () {
+      this.interval.firstPoint = 0;
     }
   },
   created () {
@@ -189,11 +192,12 @@ export default {
       return Math.floor(offset);
     },
     setView (offset = this.interval.offset, exposition = this.exposition) {
-      if (this.exposition > this.maxExposition && this.exposition > this.minExposition) {
-        offset = offset + this.exposition - this.maxExposition;
+      if (exposition > this.maxExposition &&  exposition > this.minExposition) {
+        offset = offset + exposition - this.maxExposition;
+        exposition = this.maxExposition;
       }
-      if (this.exposition < this.minExposition) {
-        offset = offset + this.exposition - this.minExposition;
+      if (exposition < this.minExposition) {
+        offset = offset + exposition - this.minExposition;
       }
       this.zoom.value = this.rebaseZoom(this.interval.width / exposition);
       this.interval.offset = this._rebaseOffset(offset);

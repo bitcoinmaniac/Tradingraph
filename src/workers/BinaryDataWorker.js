@@ -60,6 +60,7 @@ class BinaryDataWorker {
       isInitialLoading: true,
       fileSizes: {},
       firstPoints: {},
+      firstTimestamps: {},
       resolutions: [],
       empty: false
     });
@@ -78,7 +79,7 @@ class BinaryDataWorker {
   }
   rebaseOffset (offset, resolution) {
     let dataLength = this.params.fileSizes[resolution];
-    if (offset < 0) {
+    if (offset < 0 || isNaN(offset)) {
       return 0
     } else if (offset > (dataLength - 1)) {
       return dataLength - 1;
@@ -214,9 +215,9 @@ class BinaryDataWorker {
     return Math.ceil(timestamp / resolution) * this.params.packetSize;
   }
   convertOffsetToPackage (offset, resolution) {
-    let firstPoint = this.params.firstTimestamps[resolution];
-    let offsetDiff = offset - firstPoint;
-    let convertedOffset = this.convertTimestampToPackage(offsetDiff, resolution);
+    let firstTimestamp = this.params.firstTimestamps[resolution] || ((new Date()).getTime() / 1e3 - this.params.fileSizes[resolution] / this.params.packetSize * resolution);
+    let diff = offset - firstTimestamp;
+    let convertedOffset = this.convertTimestampToPackage(diff, resolution);
     return this.rebaseOffset(convertedOffset, resolution);
   }
   convertEndToPackage (end, resolution) {
@@ -426,7 +427,7 @@ class BinaryDataWorker {
       case 'SET_PARAMS': {
         this.setParams(message.data.params);
         if (
-          !this.data.averageParsed.length && Object.keys(this.params.fileSizes).length > 0 &&
+          message.data.params.fileSizes && Object.keys(this.params.fileSizes).length > 0 &&
           this.params.resolutions.length > 0 &&
           this.params.fileSizes[this.params.resolutions[this.params.resolutions.length - 1]] > 0 &&
           this.params.packetSize && !this.params.dataRequestPending
