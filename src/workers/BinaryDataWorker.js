@@ -12,6 +12,7 @@ class BinaryDataWorker {
       firstEntry: 0,
       lastResolution: 0,
       start: null,
+      end: null,
       width: null,
       last: {
         offset: 0,
@@ -25,7 +26,9 @@ class BinaryDataWorker {
       candleWidths: [],
       defaultExposition: 86400 * 30,
       fileSizes: {},
+      firstPoints: {},
       resolutions: [],
+      firstTimestamps: {},
       packetSize: 0,
       dataRequestPending: false,
       isInitialLoading: true,
@@ -43,6 +46,7 @@ class BinaryDataWorker {
       firstEntry: 0,
       lastResolution: 0,
       start: null,
+      end: null,
       width: null,
       last: {
         offset: 0,
@@ -55,6 +59,7 @@ class BinaryDataWorker {
       dataRequestPending: false,
       isInitialLoading: true,
       fileSizes: {},
+      firstPoints: {},
       resolutions: [],
       empty: false
     });
@@ -62,7 +67,7 @@ class BinaryDataWorker {
   requestInitialParams () {
     this.sendMessage('REQUEST_PARAMS', {
       inner: ['candleWidths'],
-      outer: ['fileSizes', 'resolutions', 'packetSize']
+      outer: ['fileSizes', 'firstPoints', 'resolutions', 'packetSize']
     });
   }
   initialLoading (resolution) {
@@ -209,16 +214,20 @@ class BinaryDataWorker {
     return Math.ceil(timestamp / resolution) * this.params.packetSize;
   }
   convertOffsetToPackage (offset, resolution) {
-    let lastPointTimestamp = (new Date()).getTime() / 1e3;
-    let offsetFromEnd = lastPointTimestamp - (offset - this.params.defaultExposition);
-    let convertedOffset = this.convertTimestampToPackage(offsetFromEnd, resolution);
-    let fileSize = this.params.fileSizes[resolution];
-    return this.rebaseOffset(fileSize - convertedOffset, resolution);
+    // let fileSize = this.params.fileSizes[resolution];
+    // let lastPointTimestamp = (this.params.firstTimestamps[resolution] + (fileSize - this.params.packetSize) / this.params.packetSize * resolution) || (new Date()).getTime() / 1e3;
+    // let offsetFromEnd = lastPointTimestamp - (offset - this.params.defaultExposition);
+    // let convertedOffset = this.convertTimestampToPackage(offsetFromEnd, resolution);
+    let firstPoint = this.params.firstTimestamps[resolution];
+    let offsetDiff = offset - firstPoint;
+    let convertedOffset = this.convertTimestampToPackage(offsetDiff, resolution);
+    return this.rebaseOffset(convertedOffset, resolution);
   }
   convertEndToPackage (end, resolution) {
-    let lastPointTimestamp = (new Date()).getTime() / 1e3;
-    let convertedEnd = this.convertTimestampToPackage(lastPointTimestamp - end, resolution);
     let fileSize = this.params.fileSizes[resolution];
+    let lastPointTimestamp = (this.params.firstTimestamps[resolution] + (fileSize - this.params.packetSize) / this.params.packetSize * resolution) || (new Date()).getTime() / 1e3;
+    let convertedEnd = this.convertTimestampToPackage(lastPointTimestamp - end, resolution);
+    debugger;
     return this.rebaseEnd(fileSize - convertedEnd, resolution);
   }
   /**
@@ -427,6 +436,11 @@ class BinaryDataWorker {
           this.params.fileSizes[this.params.resolutions[this.params.resolutions.length - 1]] > 0 &&
           this.params.packetSize && !this.params.dataRequestPending
         ) {
+          if (this.params.firstPoints && Object.keys(this.params.firstPoints).length) {
+            for(let interval in this.params.firstPoints) {
+              this.params.firstTimestamps[interval] = this.parseEntity(this.params.firstPoints[interval]).timestamp;
+            }
+          }
           this.initialLoading(this.params.resolutions[this.params.resolutions.length - 1]);
         } else if (
           !this.data.averageParsed.length && Object.keys(this.params.fileSizes).length > 0 && this.params.resolutions.length > 0 &&

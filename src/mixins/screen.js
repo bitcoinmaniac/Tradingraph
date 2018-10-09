@@ -117,10 +117,6 @@ export default {
     },
     'initialSize.width' () {
       this._onResize();
-    },
-    reloadCounter () {
-      this.interval.firstPoint = 0;
-      this.setView(this.intervalStartOffset, this.initExposition);
     }
   },
   created () {
