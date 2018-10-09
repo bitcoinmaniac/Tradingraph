@@ -5,8 +5,8 @@
             fill="transparent" :stroke="indicator.params.color"
             :d="indicator.indicatorsPath"/>
       <path v-else-if="typeof indicator.indicatorsPath === 'object'"
-            v-for="(subLine, index) in indicator.indicatorsPath"
-            fill="transparent" :stroke="indicator.params.color[index]"
+            v-for="(subLine) in indicator.indicatorsPath"
+            fill="transparent" :stroke="indicator.params.color"
             :d="subLine"/>
     </g>
   </g>
@@ -14,7 +14,7 @@
 
 <script>
   export default {
-    name: 'IndicatorsLogic',
+    name: 'IndicatorsRender',
     props: {
       indicatorData: {
         type: Array,

@@ -10,14 +10,7 @@
       <div class="menu">
         <button class="menu__button" @click="toogleMenu"> Indicators </button>
       </div>
-      <div v-if="isIndicatorsOpen" class="indicators">
-        <div v-for="indicator in indicators" style="display: flex; flex-direction: row">
-          <p>{{indicator.name}}</p>
-          <input v-for="(input, key) in indicator.values" type="number" v-model="indicator.values[key]" :key="key"/>
-          <!--<input type="color" v-model="indicator.params.color"/>-->
-        </div>
-        <button @click="addIndicator">+</button>
-      </div>
+      <indicators v-show="isIndicatorsOpen" @indicatorChange="handleIndicatorChange"></indicators>
       <svg class="crypto-chart"
            :view-box.camel="[0, 0, width ? width : 0, height ? height : 0]"
            :width="width ? width : 0"
@@ -97,9 +90,10 @@
 
   import AxisX from "./components/Axis/AxisX";
   import AxisY from "./components/Axis/AxisY";
-  import Crosshair from "./components/Intercative/Crosshair"
-  import Navigator from "./components/Navigator/Navigator"
-  import IndicatorsRender from "./components/Indicators/IndicatorsRender"
+  import Crosshair from "./components/Intercative/Crosshair";
+  import Navigator from "./components/Navigator/Navigator";
+  import Indicators from "./components/Indicators/Indicators"
+  import IndicatorsRender from "./components/Indicators/IndicatorsRender";
 
   export default {
     name: 'crypto-chart',
@@ -118,6 +112,7 @@
       AxisY,
       Crosshair,
       Navigator,
+      Indicators,
       IndicatorsRender
     },
     data() {
@@ -139,59 +134,8 @@
             nominal: 4
           }
         },
-        indicators: {
-          'Sma1': {
-            name: 'Sma',
-            type: 'sma',
-            enabled: true,
-            params: {
-              color: '#637eac'
-            },
-            values: {
-              window: 7
-            },
-            data: []
-          },
-          'Sma2': {
-            name: 'Sma',
-            type: 'sma',
-            enabled: false,
-            params: {
-              color: '#637eac'
-            },
-            values: {
-              window: 7
-            },
-            data: []
-          },
-          'Ema1': {
-            name: 'Ema',
-            type: 'ema',
-            enabled: true,
-            params: {
-              color: '#5eac6a'
-            },
-            values: {
-              window: 7
-            },
-            data: []
-          },
-          'Bolinger1': {
-            name: 'Bolinger',
-            type: 'bolinger',
-            enabled: true,
-            params: {
-              color: ['#90ab18', '#ab9e2c', '#90ab18']
-            },
-            values: {
-              window: 7
-            },
-            data: []
-          }
-        },
+        indicators: {},
         indicatorDisplayableData: [],
-        indicatorsData: {},
-        indicatorsPaths: [],
         interactiveTool: {
           fontSize: 10
         }
@@ -241,22 +185,6 @@
         },
         deep: true
       },
-      indicators: {
-        handler () {
-          for (let worker in this.workers) {
-            this.workers[worker].renderIndicators();
-          }
-        },
-        deep: true
-      },
-      // indicatorsData: {
-      //   handler () {
-      //     this.indicatorsPaths = Object.keys(this.indicatorsData).map(key => {
-      //       return this.indicatorsData[key].join(' ');
-      //     })
-      //   },
-      //   deep: true
-      // },
       'eventsMouse.scrolling.isScrolling' (value) {
         this.interactive.cursor = value ? 'grabbing' : 'default';
       },
@@ -273,8 +201,11 @@
       }
     },
     methods: {
-      addIndicator () {
-        console.log('add!');
+      handleIndicatorChange (value) {
+        this.indicators = value;
+        for (let worker in this.workers) {
+          this.workers[worker].renderIndicators();
+        }
       },
       onRedraw() {
         for (let worker in this.workers) {
@@ -305,7 +236,6 @@
       },
       toogleMenu () {
         this.isIndicatorsOpen = !this.isIndicatorsOpen;
-        console.log('ttogle!');
       }
     }
   };

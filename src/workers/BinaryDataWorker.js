@@ -527,12 +527,22 @@ class BinaryDataWorker {
     return indicators;
   }
   renderIndicators (offset, exposition, indicators, viewWidth, viewHeight) {
+    return;
     let result = {};
     let theCase = this.findCandleWidthForUse(exposition, viewWidth);
     let xFactor = viewWidth / exposition;
     let dataByCase = this.data.tree[theCase];
     let start = 0;
-    if (dataByCase) {
+    let atLeastOneEnabled = false;
+    if (Object.keys(indicators).length) {
+      for (let item in indicators) {
+        if (indicators[item].enabled) {
+          atLeastOneEnabled = true;
+          break;
+        }
+      }
+    }
+    if (dataByCase && atLeastOneEnabled) {
       let stop = dataByCase.length;
       let high = null;
       let low = null;
@@ -569,10 +579,8 @@ class BinaryDataWorker {
         yFactor = viewHeight / (high * 1.1 - low);
       }
       let close = dataByCase.map(value => value.close);
-      if (Object.keys(indicators).length) {
-        let computedIndicators = this.computeIndicators(start, stop, close, indicators);
-        result = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: xFactor, y: yFactor, high: high});
-      }
+      let computedIndicators = this.computeIndicators(start, stop, close, indicators);
+      result = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: xFactor, y: yFactor, high: high});
     }
 
     this.sendMessage('RENDERED', {
