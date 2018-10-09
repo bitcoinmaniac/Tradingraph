@@ -214,10 +214,6 @@ class BinaryDataWorker {
     return Math.ceil(timestamp / resolution) * this.params.packetSize;
   }
   convertOffsetToPackage (offset, resolution) {
-    // let fileSize = this.params.fileSizes[resolution];
-    // let lastPointTimestamp = (this.params.firstTimestamps[resolution] + (fileSize - this.params.packetSize) / this.params.packetSize * resolution) || (new Date()).getTime() / 1e3;
-    // let offsetFromEnd = lastPointTimestamp - (offset - this.params.defaultExposition);
-    // let convertedOffset = this.convertTimestampToPackage(offsetFromEnd, resolution);
     let firstPoint = this.params.firstTimestamps[resolution];
     let offsetDiff = offset - firstPoint;
     let convertedOffset = this.convertTimestampToPackage(offsetDiff, resolution);
@@ -227,7 +223,6 @@ class BinaryDataWorker {
     let fileSize = this.params.fileSizes[resolution];
     let lastPointTimestamp = (this.params.firstTimestamps[resolution] + (fileSize - this.params.packetSize) / this.params.packetSize * resolution) || (new Date()).getTime() / 1e3;
     let convertedEnd = this.convertTimestampToPackage(lastPointTimestamp - end, resolution);
-    debugger;
     return this.rebaseEnd(fileSize - convertedEnd, resolution);
   }
   /**
