@@ -1,6 +1,6 @@
 const MIN_WIDTH_CANDLE = 3;
 const VOLUME_ZONE = 0.3;    // Volume area
-class svgDraw {
+class SvgDraw {
   constructor (points) {
     this.points = points;
     this.smoothing = 0.2;
@@ -48,6 +48,9 @@ class svgDraw {
     );
   }
 }
+class TechIndicators {
+  constructor () {}
+}
 class BinaryDataWorker {
   constructor () {
     this.data = {
@@ -58,6 +61,7 @@ class BinaryDataWorker {
       averageParsed: [],
       firstEntry: 0,
       lastResolution: 0,
+      biggerWindow: 0,
       start: null,
       end: null,
       width: null,
@@ -90,6 +94,7 @@ class BinaryDataWorker {
       candlesParsed: [],
       averageBinary: [],
       averageParsed: [],
+      biggerWindow: 0,
       firstEntry: 0,
       lastResolution: 0,
       start: null,
@@ -333,13 +338,102 @@ class BinaryDataWorker {
     let averageSquareDiff = this.average(squareDiffs);
     return Math.sqrt(averageSquareDiff);
   }
+  computeIndicators (start, stop, array, indicators) {
+    let result = {};
+    for (let indicator in indicators) {
+      if (!indicators[indicator].enabled) {
+        continue;
+      }
+      result[indicator] = {
+        params: indicators[indicator].params,
+        type: indicators[indicator].type,
+        dataByPoint: [],
+        multiplyLinesData: {},
+        indicatorsPath: '',
+        data: []
+      }
+      switch (result[indicator].type) {
+        case 'ema' : {
+          let window = +indicators[indicator].values.window;
+          result[indicator].data = this.computeEma(array.slice(0, stop), window);
+          break;
+        }
+        case 'sma' : {
+          let window = +indicators[indicator].values.window;
+          result[indicator].data = this.computeSma(array.slice(0, stop), window);
+          break;
+        }
+        case 'bolinger' : {
+          let window = +indicators[indicator].values.window;
+          result[indicator].data = this.computeBolinger(array.slice(0, stop), window);
+          result[indicator].multiplyLinesData = { lower: [], upper: [] };
+          break;
+        }
+        default: break;
+      }
+    }
+    return result;
+  }
+  placeIndicatorsByPoint (indicators, start, stop, array, offset, factors) {
+    for (let index = start; index < stop; index++) {
+      let candle = array[index];
+      let x = (candle.timestamp - offset) * factors.x;
+      for (let indicator in indicators) {
+        switch (indicators[indicator].type) {
+          case 'ema' :
+          case 'sma' : {
+            let sma = indicators[indicator].data;
+            let indicatorLength = sma.length;
+            let indicatorDif = indicatorLength - (stop - start);
+            let pointY = (factors.high - (sma[index - start + indicatorDif] || candle.close)) * factors.y;
+            indicators[indicator].dataByPoint.push([x, pointY]);
+            break;
+          }
+          case 'bolinger' : {
+            for (let line in indicators[indicator].data) {
+              let lineData = indicators[indicator].data[line];
+              let indicatorLength = lineData.length;
+              let indicatorDif = indicatorLength - (stop - start);
+              let pointY = (factors.high - (lineData[index - start + indicatorDif] || candle.close)) * factors.y;
+              indicators[indicator].multiplyLinesData[line].push([x, pointY]);
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+    }
+    for (let indicator in indicators) {
+      if (indicators[indicator].dataByPoint.length) {
+        let draw = new SvgDraw(indicators[indicator].dataByPoint);
+        indicators[indicator].indicatorsPath = draw.drawSvgPath();
+      } else if (Object.keys(indicators[indicator].multiplyLinesData).length) {
+        indicators[indicator].indicatorsPath = [];
+        for (let line in indicators[indicator].multiplyLinesData) {
+          let draw = new SvgDraw(indicators[indicator].multiplyLinesData[line]);
+          indicators[indicator].indicatorsPath.push(draw.drawSvgPath());
+        }
+      }
+      delete indicators[indicator].data;
+      delete indicators[indicator].dataByPoint;
+      delete indicators[indicator].type;
+    }
+    return indicators;
+  }
+  findBiggerWindow (indicators) {
+    for (let indicator in indicators) {
+      if (indicators[indicator].values.window && indicators[indicator].values.window > this.data.biggerWindow) {
+        this.data.biggerWindow = indicators[indicator].values.window;
+      }
+    }
+  }
   /**
    * @description Render candles objects
    * @param {Number} offset     - exposition offset
    * @param {Number} exposition - exposition width
    * @param {Number} viewWidth  - view box width
    */
-  renderCandles (offset, exposition, viewWidth, viewHeight) {
+  renderCandles (offset, exposition, viewWidth, viewHeight, indicators) {
     if (!this.data.treeReady) {
       this.makeTree();
     }
@@ -358,8 +452,9 @@ class BinaryDataWorker {
     let koofX = viewWidth / exposition;
     result.width = theCase * koofX;
     let dataByCase = this.data.tree[theCase];
-    let start = 0;
+    this.findBiggerWindow(indicators);
     if (dataByCase && this.data.lastResolution === theCase) {
+      let start = 0;
       let stop = dataByCase.length;
       if (offset > this.data.start) {
         start = -Math.floor((offset - this.data.start) / theCase);
@@ -430,14 +525,23 @@ class BinaryDataWorker {
         rCandle.x = x;
         result.candles.push(rCandle);
       }
+      this.renderIndicatorsAfterCandles(offset, exposition, indicators, viewWidth, viewHeight, {
+        theCase: theCase,
+        start: start,
+        stop: stop,
+        x: koofX,
+        y: yFactor,
+        high: result.high
+      });
     }
-    if (!this.params.isInitialLoading && offset > 1 && (this.data.start > offset || this.data.end < (offset + exposition) || !dataByCase || this.data.lastResolution !== theCase)) {
-      let resolution = this.findAvailableResolution(theCase);
+    let resolution = this.findAvailableResolution(theCase);
+    let additionalOffset = this.data.biggerWindow * 2 * resolution || this.params.defaultExposition;
+    if (!this.params.isInitialLoading && offset > 1 && ((this.data.start + additionalOffset) > offset || this.data.end < (offset + exposition) || !dataByCase || this.data.lastResolution !== theCase)) {
       // let correctOffset = offset < this.data.end ? offset : this.data.end;
       // let correctEnd = (offset + exposition) > this.data.start ? (offset + exposition) : this.data.start;
       if (resolution) {
         this.requestData(
-          this.convertOffsetToPackage(offset, resolution),
+          this.convertOffsetToPackage(offset - additionalOffset, resolution),
           this.convertEndToPackage(offset + exposition, resolution) - 1,
           resolution
         );
@@ -449,90 +553,7 @@ class BinaryDataWorker {
     this.data.lastResolution = theCase;
     this.sendMessage('RENDERED', { type: 'candles', data: result });
   }
-  computeIndicators (start, stop, array, indicators) {
-    let result = {};
-    for (let indicator in indicators) {
-      if (!indicators[indicator].enabled) {
-        continue;
-      }
-      result[indicator] = {
-        params: indicators[indicator].params,
-        type: indicators[indicator].type,
-        dataByPoint: [],
-        multiplyLinesData: {},
-        indicatorsPath: '',
-        data: []
-      }
-      switch (result[indicator].type) {
-        case 'ema' : {
-          let window = +indicators[indicator].values.window;
-          result[indicator].data = this.computeEma(array.slice(0, stop), window);
-          break;
-        }
-        case 'sma' : {
-          let window = +indicators[indicator].values.window;
-          result[indicator].data = this.computeSma(array.slice(0, stop), window);
-          break;
-        }
-        case 'bolinger' : {
-          let window = +indicators[indicator].values.window;
-          result[indicator].data = this.computeBolinger(array.slice(0, stop), window);
-          result[indicator].multiplyLinesData = { lower: [], upper: [] };
-          break;
-        }
-        default: break;
-      }
-    }
-    return result;
-  }
-  placeIndicatorsByPoint (indicators, start, stop, array, offset, factors) {
-    for (let index = start; index < stop; index++) {
-      let candle = array[index];
-      let x = (candle.timestamp - offset) * factors.x;
-      for (let indicator in indicators) {
-        switch (indicators[indicator].type) {
-          case 'ema' :
-          case 'sma' : {
-            let sma = indicators[indicator].data;
-            let indicatorLength = sma.length;
-            let indicatorDif = indicatorLength - (stop - start);
-            let pointY = (factors.high - (sma[index - start + indicatorDif] || candle.close)) * factors.y;
-            indicators[indicator].dataByPoint.push([x, pointY]);
-            break;
-          }
-          case 'bolinger' : {
-            for (let line in indicators[indicator].data) {
-              let lineData = indicators[indicator].data[line];
-              let indicatorLength = lineData.length;
-              let indicatorDif = indicatorLength - (stop - start);
-              let pointY = (factors.high - (lineData[index - start + indicatorDif] || candle.close)) * factors.y;
-              indicators[indicator].multiplyLinesData[line].push([x, pointY]);
-            }
-            break;
-          }
-          default: break;
-        }
-      }
-    }
-    for (let indicator in indicators) {
-      if (indicators[indicator].dataByPoint.length) {
-        let draw = new svgDraw(indicators[indicator].dataByPoint);
-        indicators[indicator].indicatorsPath = draw.drawSvgPath();
-      } else if (Object.keys(indicators[indicator].multiplyLinesData).length) {
-        indicators[indicator].indicatorsPath = [];
-        for (let line in indicators[indicator].multiplyLinesData) {
-          let draw = new svgDraw(indicators[indicator].multiplyLinesData[line]);
-          indicators[indicator].indicatorsPath.push(draw.drawSvgPath());
-        }
-      }
-      delete indicators[indicator].data;
-      delete indicators[indicator].dataByPoint;
-      delete indicators[indicator].type;
-    }
-    return indicators;
-  }
   renderIndicators (offset, exposition, indicators, viewWidth, viewHeight) {
-    return;
     let result = {};
     let theCase = this.findCandleWidthForUse(exposition, viewWidth);
     let xFactor = viewWidth / exposition;
@@ -586,6 +607,37 @@ class BinaryDataWorker {
       let close = dataByCase.map(value => value.close);
       let computedIndicators = this.computeIndicators(start, stop, close, indicators);
       result = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: xFactor, y: yFactor, high: high});
+    }
+    this.sendMessage('RENDERED', {
+      type: 'indicators',
+      data: {
+        indicators: result
+      }
+    });
+  }
+  renderIndicatorsAfterCandles (offset, exposition, indicators, viewWidth, viewHeight, factors) {
+    let result = {};
+    let dataByCase = this.data.tree[factors.theCase];
+    let atLeastOneEnabled = false;
+    if (Object.keys(indicators).length) {
+      for (let item in indicators) {
+        if (indicators[item].enabled) {
+          atLeastOneEnabled = true;
+          break;
+        }
+      }
+    }
+    if (dataByCase && atLeastOneEnabled) {
+      let close = dataByCase.map(value => value.close);
+      let computedIndicators = this.computeIndicators(factors.start, factors.stop, close, indicators);
+      result = this.placeIndicatorsByPoint(
+        computedIndicators,
+        factors.start,
+        factors.stop,
+        dataByCase,
+        offset,
+        {x: factors.x, y: factors.y, high: factors.high}
+        );
     }
 
     this.sendMessage('RENDERED', {
@@ -677,6 +729,7 @@ class BinaryDataWorker {
     return true;
   }
   messageHandler (message) {
+    // console.log('GET', message.data.task);
     switch (message.data.task) {
       case 'SET_PARAMS': {
         this.setParams(message.data.params);
@@ -712,7 +765,7 @@ class BinaryDataWorker {
             break;
           }
           case 'candles': {
-            this.renderCandles(params.offset, params.exposition, params.viewWidth, params.viewHeight);
+            this.renderCandles(params.offset, params.exposition, params.viewWidth, params.viewHeight, params.indicators);
             break;
           }
           case 'indicators': {
@@ -739,6 +792,7 @@ class BinaryDataWorker {
    * @param {Object} body - data for message depends on command
    */
   sendMessage (type, body = null) {
+    // console.log('SEND', type);
     postMessage({type, body});
   }
 }

@@ -41,7 +41,7 @@
           <g v-if="interactive.hoverCandle">
             <text :y="15" :x="8" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="interactiveTool.fontSize"
                   :style="hoverColor(interactive.hoverCandle.open, interactive.hoverCandle.close)">
-              O: {{interactive.hoverCandle.open.toFixed(interactive.fraction.limit)}}
+              Os: {{interactive.hoverCandle.open.toFixed(interactive.fraction.limit)}}
               H: {{interactive.hoverCandle.high.toFixed(interactive.fraction.limit)}}
               L: {{interactive.hoverCandle.low.toFixed(interactive.fraction.limit)}}
               C: {{interactive.hoverCandle.close.toFixed(interactive.fraction.limit)}}
@@ -204,7 +204,7 @@
       handleIndicatorChange (value) {
         this.indicators = value;
         for (let worker in this.workers) {
-          this.workers[worker].renderIndicators();
+          this.workers[worker].redraw();
         }
       },
       onRedraw() {

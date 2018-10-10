@@ -136,7 +136,8 @@ export default {
             offset: this.interval.offset,
             exposition: this.exposition,
             viewWidth: this.chart.width - this.axisXOffset,
-            viewHeight: this.chart.height
+            viewHeight: this.chart.height,
+            indicators: this.indicators
           }
         });
       }
@@ -152,17 +153,17 @@ export default {
       });
     },
     renderIndicators () {
-      this.workers.binaryWorker.postMessage({
-        task: 'RENDER',
-        params: {
-          type: 'indicators',
-          offset: this.interval.offset,
-          exposition: this.exposition,
-          indicators: this.indicators,
-          viewWidth: this.width - this.axisXOffset,
-          viewHeight: this.chart.height
-        }
-      });
+      // this.workers.binaryWorker.postMessage({
+      //   task: 'RENDER',
+      //   params: {
+      //     type: 'indicators',
+      //     offset: this.interval.offset,
+      //     exposition: this.exposition,
+      //     indicators: this.indicators,
+      //     viewWidth: this.width - this.axisXOffset,
+      //     viewHeight: this.chart.height
+      //   }
+      // });
     },
     findRequestedParam (newParams, requestedParam) {
       let availableParams = [];

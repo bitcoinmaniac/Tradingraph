@@ -67,18 +67,6 @@ export default {
             window: 14
           },
           data: []
-        },
-        'Bolinger': {
-          name: 'Bolinger',
-          type: 'bolinger',
-          enabled: false,
-          params: {
-            color: '#9a5fab'
-          },
-          values: {
-            window: 7
-          },
-          data: []
         }
       },
     }
