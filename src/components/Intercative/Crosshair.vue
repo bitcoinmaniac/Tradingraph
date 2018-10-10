@@ -80,7 +80,6 @@
     path {
       fill: black;
       stroke: black;
-      opacity: 1;
     }
     text {
       stroke: none;
@@ -91,9 +90,8 @@
 
   .moment-label {
     path {
-      fill: #333;
-      stroke: #333;
-      opacity: 1;
+      fill: black;
+      stroke: black;
     }
     text {
       stroke: none;
