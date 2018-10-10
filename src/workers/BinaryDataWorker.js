@@ -12,6 +12,7 @@ class BinaryDataWorker {
       firstEntry: 0,
       lastResolution: 0,
       start: null,
+      end: null,
       width: null,
       last: {
         offset: 0,
@@ -25,7 +26,9 @@ class BinaryDataWorker {
       candleWidths: [],
       defaultExposition: 86400 * 30,
       fileSizes: {},
+      firstPoints: {},
       resolutions: [],
+      firstTimestamps: {},
       packetSize: 0,
       dataRequestPending: false,
       isInitialLoading: true,
@@ -43,6 +46,7 @@ class BinaryDataWorker {
       firstEntry: 0,
       lastResolution: 0,
       start: null,
+      end: null,
       width: null,
       last: {
         offset: 0,
@@ -55,6 +59,8 @@ class BinaryDataWorker {
       dataRequestPending: false,
       isInitialLoading: true,
       fileSizes: {},
+      firstPoints: {},
+      firstTimestamps: {},
       resolutions: [],
       empty: false
     });
@@ -62,7 +68,7 @@ class BinaryDataWorker {
   requestInitialParams () {
     this.sendMessage('REQUEST_PARAMS', {
       inner: ['candleWidths'],
-      outer: ['fileSizes', 'resolutions', 'packetSize']
+      outer: ['fileSizes', 'firstPoints', 'resolutions', 'packetSize']
     });
   }
   initialLoading (resolution) {
@@ -73,7 +79,7 @@ class BinaryDataWorker {
   }
   rebaseOffset (offset, resolution) {
     let dataLength = this.params.fileSizes[resolution];
-    if (offset < 0) {
+    if (offset < 0 || isNaN(offset)) {
       return 0
     } else if (offset > (dataLength - 1)) {
       return dataLength - 1;
@@ -209,16 +215,15 @@ class BinaryDataWorker {
     return Math.ceil(timestamp / resolution) * this.params.packetSize;
   }
   convertOffsetToPackage (offset, resolution) {
-    let lastPointTimestamp = (new Date()).getTime() / 1e3;
-    let offsetFromEnd = lastPointTimestamp - (offset - this.params.defaultExposition);
-    let convertedOffset = this.convertTimestampToPackage(offsetFromEnd, resolution);
-    let fileSize = this.params.fileSizes[resolution];
-    return this.rebaseOffset(fileSize - convertedOffset, resolution);
+    let firstTimestamp = this.params.firstTimestamps[resolution] || ((new Date()).getTime() / 1e3 - this.params.fileSizes[resolution] / this.params.packetSize * resolution);
+    let diff = offset - firstTimestamp;
+    let convertedOffset = this.convertTimestampToPackage(diff, resolution);
+    return this.rebaseOffset(convertedOffset, resolution);
   }
   convertEndToPackage (end, resolution) {
-    let lastPointTimestamp = (new Date()).getTime() / 1e3;
-    let convertedEnd = this.convertTimestampToPackage(lastPointTimestamp - end, resolution);
     let fileSize = this.params.fileSizes[resolution];
+    let lastPointTimestamp = (this.params.firstTimestamps[resolution] + (fileSize - this.params.packetSize) / this.params.packetSize * resolution) || (new Date()).getTime() / 1e3;
+    let convertedEnd = this.convertTimestampToPackage(lastPointTimestamp - end, resolution);
     return this.rebaseEnd(fileSize - convertedEnd, resolution);
   }
   /**
@@ -422,11 +427,16 @@ class BinaryDataWorker {
       case 'SET_PARAMS': {
         this.setParams(message.data.params);
         if (
-          !this.data.averageParsed.length && Object.keys(this.params.fileSizes).length > 0 &&
+          message.data.params.fileSizes && Object.keys(this.params.fileSizes).length > 0 &&
           this.params.resolutions.length > 0 &&
           this.params.fileSizes[this.params.resolutions[this.params.resolutions.length - 1]] > 0 &&
           this.params.packetSize && !this.params.dataRequestPending
         ) {
+          if (this.params.firstPoints && Object.keys(this.params.firstPoints).length) {
+            for(let interval in this.params.firstPoints) {
+              this.params.firstTimestamps[interval] = this.parseEntity(this.params.firstPoints[interval]).timestamp;
+            }
+          }
           this.initialLoading(this.params.resolutions[this.params.resolutions.length - 1]);
         } else if (
           !this.data.averageParsed.length && Object.keys(this.params.fileSizes).length > 0 && this.params.resolutions.length > 0 &&
