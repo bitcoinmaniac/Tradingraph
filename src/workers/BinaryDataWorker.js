@@ -536,13 +536,13 @@ class BinaryDataWorker {
     }
     let resolution = this.findAvailableResolution(theCase);
     let additionalOffset = this.data.biggerWindow * 2 * resolution || this.params.defaultExposition;
-    if (!this.params.isInitialLoading && offset > 1 && ((this.data.start + additionalOffset) > offset || this.data.end < (offset + exposition) || !dataByCase || this.data.lastResolution !== theCase)) {
+    if (!this.params.isInitialLoading && offset > 1 && ((this.data.start + additionalOffset) > offset || this.data.end < (offset + exposition + additionalOffset) || !dataByCase || this.data.lastResolution !== theCase)) {
       // let correctOffset = offset < this.data.end ? offset : this.data.end;
       // let correctEnd = (offset + exposition) > this.data.start ? (offset + exposition) : this.data.start;
       if (resolution) {
         this.requestData(
           this.convertOffsetToPackage(offset - additionalOffset, resolution),
-          this.convertEndToPackage(offset + exposition, resolution) - 1,
+          this.convertEndToPackage(offset + exposition + additionalOffset, resolution) - 1,
           resolution
         );
       }

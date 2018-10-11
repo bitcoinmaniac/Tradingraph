@@ -88,14 +88,16 @@ export default {
 
 <style scoped lang="scss">
   .indicators {
-    background: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.98);
     position: absolute;
     top: 24px;
-    left: 24px;
-    transition: all .5s ease;
+    left: 36px;
     &__name {
+      padding-left: 2px;
+      font-weight: 700;
       width: 4rem;
       &--disabled {
+        font-weight: 500;
         color: gray;
       }
     }

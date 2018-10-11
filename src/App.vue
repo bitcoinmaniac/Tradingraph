@@ -1,15 +1,19 @@
 <template>
   <div class="tradingraph">
     <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-      <symbol id="gear" viewBox="0 0 13 13">
-        <path d="M8.224,965.559H4.988l-.265-1.486a1.064,1.064,0,0,1-.424-.212l-1.22.9L.8,962.482l.9-1.22a1.067,1.067,0,0,0-.212-.424L0,960.572v-3.237l1.486-.265c.053-.159.106-.265.159-.424l-.9-1.22,2.282-2.281,1.22.9a3.681,3.681,0,0,0,.424-.159l.212-1.486H8.118l.212,1.486a3.636,3.636,0,0,1,.424.159l1.22-.9,2.282,2.281-.9,1.22a3.654,3.654,0,0,0,.159.424l1.486.212v3.237l-1.486.212a1.885,1.885,0,0,1-.212.478l.9,1.22L9.922,964.71l-1.22-.9a1.066,1.066,0,0,0-.424.212ZM5.89,964.5H7.322l.212-1.273.318-.106a4.112,4.112,0,0,0,.849-.371l.318-.159,1.008.743,1.008-1.008-.743-1.008.159-.318a3.247,3.247,0,0,0,.371-.9l.106-.318,1.22-.159v-1.433l-1.22-.159-.106-.318a4.105,4.105,0,0,0-.371-.849l-.159-.265.743-1.008-1.008-1.008-1.008.743-.265-.159a5.892,5.892,0,0,0-.849-.371l-.318-.106-.159-1.22H6l-.159,1.22-.318.106a4.105,4.105,0,0,0-.849.371l-.265.159-1.22-.743-1.008,1.008.743,1.008-.159.265a2.344,2.344,0,0,0-.318.849l-.106.318-1.273.212v1.433l1.273.212.106.318a4.109,4.109,0,0,0,.371.849l.159.318-.743,1.008,1.008,1.008,1.008-.743.318.159a5.892,5.892,0,0,0,.849.372l.318.106Zm.69-1.963a3.555,3.555,0,1,1,3.555-3.555A3.555,3.555,0,0,1,6.58,962.535Zm0-6.049a2.494,2.494,0,1,0,2.494,2.494A2.491,2.491,0,0,0,6.58,956.486Z" transform="translate(0 -952.4)"/>
-      </symbol>
+      <symbol id="gear" viewBox="0 0 30 30">
+        <path class="gear__candle-2" d="M26,26h-4V13c0-0.552,0.448-1,1-1h2c0.552,0,1,0.448,1,1V26z"/>
+        <path class="gear__candle-1" d="M20,26h-4v-9c0-0.552,0.448-1,1-1h2c0.552,0,1,0.448,1,1V26z"/>
+        <path class="gear__candle-2" d="M14,26h-4V15c0-0.552,0.448-1,1-1h2c0.552,0,1,0.448,1,1V26z"/>
+        <path class="gear__candle-1" d="M8,26H4v-7c0-0.552,0.448-1,1-1h2c0.552,0,1,0.448,1,1V26z"/>
+        <circle cx="24" cy="6" r="2"/><circle cx="18" cy="11" r="2"/><circle cx="12" cy="8" r="2"/><circle cx="6" cy="12" r="2"/>
+        <polyline class="gear__line" points="  6,12 12,8 18,11 24,6 " style="fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;"/></symbol>
     </svg>
 
     <div>
-      <div class="menu">
-        <button class="menu__button" @click="toogleMenu">
-          <svg width="16" height="16"><use xlink:href="#gear"></use></svg>
+      <div v-if="!isEmpty" class="menu">
+        <button class="menu__button" @click="toogleMenu" title="Indicator">
+          <svg width="22" height="22"><use xlink:href="#gear"></use></svg>
         </button>
       </div>
       <indicators v-show="isIndicatorsOpen" @indicatorChange="handleIndicatorChange"></indicators>
@@ -28,6 +32,22 @@
            :style="{cursor: interactive.cursor}"
            ref="chart"
       >
+        <symbol id="indicators-path-symbol" :viewBox="`0 0 ${width - axisXOffset} ${chart.height}`">
+          <indicators-render :indicatorData="indicatorDisplayableData"></indicators-render>
+        </symbol>
+        <symbol v-if="candles" id="candles-path-symbol" :viewBox="`0 0 ${width - axisXOffset} ${chart.height}`">
+          <path class="candles-path-positive" :d="positiveCandlesPath"/>
+          <path class="candles-path-negative" :d="negativeCandlesPath"/>
+          <path class="candles-path-volume" :d="volumeCandlesPath"/>
+          <g v-if="interactive.hoverCandle">
+            <path class="candles-path-volume hover"
+                  :d="candles.volumePath[interactive.hoverCandle.volumePathIndex]"/>
+            <path v-if="interactive.hoverCandle.class == 'negative'" class="candles-path-negative hover"
+                  :d="candles.candlesNegativePath[interactive.hoverCandle.candlePathIndex]"/>
+            <path v-else-if="interactive.hoverCandle.class == 'positive'" class="candles-path-positive hover"
+                  :d="candles.candlesPositivePath[interactive.hoverCandle.candlePathIndex]"/>
+          </g>
+        </symbol>
         <!--main chart group-->
         <g v-if="isLoading" name="loading">
           <!--<slot name="loading">-->
@@ -40,6 +60,8 @@
           </text>
         </g>
         <g v-else-if="candles">
+          <use xlink:href="#indicators-path-symbol" :y="offsets.chartTop" :width="width - axisXOffset" :height="chart.height"></use>
+          <use xlink:href="#candles-path-symbol" :y="offsets.chartTop" :width="width - axisXOffset" :height="chart.height"></use>
           <g v-if="interactive.hoverCandle">
             <text :y="15" :x="8" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="interactiveTool.fontSize"
                   :style="hoverColor(interactive.hoverCandle.open, interactive.hoverCandle.close)">
@@ -49,20 +71,6 @@
               C: {{interactive.hoverCandle.close.toFixed(interactive.fraction.limit)}}
               Vol: {{interactive.hoverCandle.volume.toFixed(interactive.fraction.nominal)}}
             </text>
-          </g>
-          <g :transform="`translate(0, ${this.offsets.chartTop})`">
-            <path class="candles-path-positive" :d="positiveCandlesPath"/>
-            <path class="candles-path-negative" :d="negativeCandlesPath"/>
-            <path class="candles-path-volume" :d="volumeCandlesPath"/>
-            <indicators-render :indicatorData="indicatorDisplayableData"></indicators-render>
-            <g v-if="interactive.hoverCandle">
-              <path class="candles-path-volume hover"
-                    :d="candles.volumePath[interactive.hoverCandle.volumePathIndex]"/>
-              <path v-if="interactive.hoverCandle.class == 'negative'" class="candles-path-negative hover"
-                    :d="candles.candlesNegativePath[interactive.hoverCandle.candlePathIndex]"/>
-              <path v-else-if="interactive.hoverCandle.class == 'positive'" class="candles-path-positive hover"
-                    :d="candles.candlesPositivePath[interactive.hoverCandle.candlePathIndex]"/>
-            </g>
           </g>
           <axis-y :candles="candles" :chart-height="chart.height" :chart-width="widths.axisY" :chart-offset="offsets.chartTop"
                   :fractionLimit="interactive.fraction.limit"/>
@@ -192,6 +200,9 @@
       },
       'eventsMouse.scrolling.isHover' (value) {
         this.interactive.isHover = value;
+      },
+      reloadCounter () {
+        this.indicatorDisplayableData = [];
       }
     },
     created () {
@@ -244,18 +255,33 @@
 </script>
 
 <style lang="scss">
+  .gear {
+    &__candle-2 {
+      fill: darkred;
+    }
+    &__candle-1 {
+      fill: darkgreen;
+    }
+    &__line {
+      stroke: darkblue;
+    }
+  }
   .tradingraph {
     position: relative;
   }
   .menu {
     position: absolute;
     top: 24px;
-    &:hover {
-      transform: scale(1.1);
-    }
+    left: 8px;
     &__button {
-      background: none;
-      border: none;
+      &:hover {
+        transform: scale(1.1);
+      }
+      display: flex;
+      flex-direction: row;
+      padding: 1px;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid lightgray;
       border-radius: 4px;
     }
   }
