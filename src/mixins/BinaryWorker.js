@@ -100,9 +100,9 @@ export default {
             }
             case 'indicators': {
               this.indicatorDisplayableData.splice(0);
-              this.indicatorDisplayableData = Object.keys(message.data.body.data.indicators).map(key => {
-                if (message.data.body.data.indicators[key]) {
-                  return message.data.body.data.indicators[key];
+              this.indicatorDisplayableData = Object.keys(message.data.body.data).map(key => {
+                if (message.data.body.data[key]) {
+                  return message.data.body.data[key];
                 } else {
                   return '';
                 }

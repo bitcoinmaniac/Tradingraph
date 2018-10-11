@@ -49,7 +49,180 @@ class SvgDraw {
   }
 }
 class TechIndicators {
-  constructor () {}
+  constructor (data, indicators) {
+    this.data = data || [];
+    this.indicators = this.getOnlyActiveIndicators(indicators) || {};
+    this.params = {
+      start: null,
+      stop: null,
+      xFactor: null,
+      yFactor: null,
+      highPoint: null,
+      offset: null
+    }
+  }
+  setParams (start = 0, stop = 0, xFactor = 0, yFactor = 0, highPoint = 0, offset = 0) {
+    this.params = {start, stop, xFactor, yFactor, highPoint, offset}
+  }
+  getOnlyActiveIndicators (indicators) {
+    let activeIndicators = {};
+    if (typeof indicators === 'object') {
+      for (let indicator in indicators) {
+        if (indicators[indicator].enabled) {
+          activeIndicators[indicator] = {
+            params: indicators[indicator].params,
+            type: indicators[indicator].type,
+            values: indicators[indicator].values,
+            dataByPoint: [],
+            multiplyLinesData: {},
+            indicatorsPath: '',
+            data: []
+          }
+        }
+      }
+    }
+    return activeIndicators;
+  }
+  pointwise (fn, firstArray, secondArray) {
+    let result = [];
+    for (let i = 0, len = firstArray.length; i < len; i++) {
+      result.push(fn(firstArray[i], secondArray[i]));
+    }
+    return result;
+  }
+  average (arr) {
+    return arr.reduce((sum, value) => sum + value, 0) / arr.length;
+  }
+  standardDeviation (values) {
+    let average = this.average(values);
+
+    let squareDiffs = values.map(value => {
+      let diff = value - average;
+      let sqrDiff = diff * diff;
+      return sqrDiff;
+    });
+    let averageSquareDiff = this.average(squareDiffs);
+    return Math.sqrt(averageSquareDiff);
+  }
+  computeSma (array, windowSize) {
+    let window = windowSize || array.length;
+    let result = [];
+    for (let i = 0; i < array.length; i++) {
+      if (i + 1 < window) {
+        result.push(NaN);
+      } else {
+        result.push(this.average(array.slice(i + 1 - window, i + 1)));
+      }
+    }
+    return result;
+  }
+  computeEma (array, windowSize) {
+    let weight = 2 / (windowSize + 1);
+    let ema = [this.average(array.slice(0, windowSize))];
+    for (let i = 1; i < array.length; i++) {
+      ema.push(array[i] * weight + ema[i - 1] * (1 - weight));
+    }
+    return ema;
+  }
+  computeStdev (array, windowSize) {
+    let window = windowSize || array.length;
+    let result = [];
+    for (let i = 0; i < array.length; i++) {
+      if (i + 1 < window) {
+        result.push(NaN);
+      } else {
+        result.push(this.standardDeviation(array.slice(i + 1 - window, i + 1)));
+      }
+    }
+    return result;
+  }
+  computeBolinger (array, window, mult = 2) {
+    let middle = this.computeSma(array, window);
+    let stddev = this.computeStdev(array, window);
+    let upper = this.pointwise((a, b) => a + b * mult, middle, stddev);
+    let lower = this.pointwise((a, b) => a - b * mult, middle, stddev);
+    return {lower, upper};
+  }
+  computeIndicators (start, stop) {
+    for (let indicator in this.indicators) {
+      switch (this.indicators[indicator].type) {
+        case 'ema' : {
+          let window = +this.indicators[indicator].values.window;
+          this.indicators.data = this.computeEma(this.data.slice(0, stop), window);
+          break;
+        }
+        case 'sma' : {
+          let window = +this.indicators[indicator].values.window;
+          this.indicators[indicator].data = this.computeSma(this.data.slice(0, stop), window);
+          break;
+        }
+        case 'bolinger' : {
+          let window = +this.indicators[indicator].values.window;
+          this.indicators[indicator].data = this.computeBolinger(this.data.slice(0, stop), window);
+          this.indicators[indicator].multiplyLinesData = { lower: [], upper: [] };
+          break;
+        }
+        default: break;
+      }
+    }
+  }
+  findBiggerWindow () {
+    let biggerWindow = 0;
+    for (let indicator in this.indicators) {
+      if (this.indicators[indicator].values.window && this.indicators[indicator].values.window > biggerWindow) {
+        biggerWindow = this.indicators[indicator].values.window;
+      }
+    }
+    return biggerWindow;
+  }
+  getIndicatorsPath () {
+    this.computeIndicators(this.params.start, this.params.stop);
+    for (let index = this.params.start; index < this.params.stop; index++) {
+      let candle = this.data[index];
+      let x = (candle.timestamp - this.params.offset) * this.params.xFactor;
+      for (let indicator in this.indicators) {
+        switch (this.indicators[indicator].type) {
+          case 'ema' :
+          case 'sma' : {
+            let sma = this.indicators[indicator].data;
+            let indicatorLength = sma.length;
+            let indicatorDif = indicatorLength - (this.params.stop - this.params.start);
+            let pointY = (this.params.highPoint - (sma[index - this.params.start + indicatorDif] || candle.close)) * this.params.yFactor;
+            this.indicators[indicator].dataByPoint.push([x, pointY]);
+            break;
+          }
+          case 'bolinger' : {
+            for (let line in this.indicators[indicator].data) {
+              let lineData = this.indicators[indicator].data[line];
+              let indicatorLength = lineData.length;
+              let indicatorDif = indicatorLength - (this.params.stop - this.params.start);
+              let pointY = (this.params.highPoint - (lineData[index - this.params.start + indicatorDif] || candle.close)) * this.params.yFactor;
+              this.indicators[indicator].multiplyLinesData[line].push([x, pointY]);
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+    }
+    for (let indicator in this.indicators) {
+      if (this.indicators[indicator].dataByPoint.length) {
+        let draw = new SvgDraw(this.indicators[indicator].dataByPoint);
+        this.indicators[indicator].indicatorsPath = draw.drawSvgPath();
+      } else if (Object.keys(indicators[indicator].multiplyLinesData).length) {
+        this.indicators[indicator].indicatorsPath = [];
+        for (let line in indicators[indicator].multiplyLinesData) {
+          let draw = new SvgDraw(this.indicators[indicator].multiplyLinesData[line]);
+          this.indicators[indicator].indicatorsPath.push(draw.drawSvgPath());
+        }
+      }
+      delete this.indicators[indicator].data;
+      delete this.indicators[indicator].dataByPoint;
+      delete this.indicators[indicator].type;
+      delete this.indicators[indicator].values;
+    }
+    return this.indicators;
+  }
 }
 class BinaryDataWorker {
   constructor () {
@@ -278,155 +451,6 @@ class BinaryDataWorker {
     let convertedEnd = this.convertTimestampToPackage(lastPointTimestamp - end, resolution);
     return this.rebaseEnd(fileSize - convertedEnd, resolution);
   }
-  computeSma (array, windowSize) {
-    let window = windowSize || array.length;
-    let result = [];
-    for (let i = 0; i < array.length; i++) {
-      if (i + 1 < window) {
-        result.push(NaN);
-      } else {
-        result.push(this.average(array.slice(i + 1 - window, i + 1)));
-      }
-    }
-    return result;
-  }
-  computeEma (array, windowSize) {
-    let weight = 2 / (windowSize + 1);
-    let ema = [this.average(array.slice(0, windowSize))];
-    for (let i = 1; i < array.length; i++) {
-      ema.push(array[i] * weight + ema[i - 1] * (1 - weight));
-    }
-    return ema;
-  }
-  computeStdev (array, windowSize) {
-    let window = windowSize || array.length;
-    let result = [];
-    for (let i = 0; i < array.length; i++) {
-      if (i + 1 < window) {
-        result.push(NaN);
-      } else {
-        result.push(this.standardDeviation(array.slice(i + 1 - window, i + 1)));
-      }
-    }
-    return result;
-  }
-  pointwise (fn, firstArray, secondArray) {
-    let result = [];
-    for (let i = 0, len = firstArray.length; i < len; i++) {
-      result.push(fn(firstArray[i], secondArray[i]));
-    }
-    return result;
-  }
-  computeBolinger (array, window, mult = 2) {
-    let middle = this.computeSma(array, window);
-    let stddev = this.computeStdev(array, window);
-    let upper = this.pointwise((a, b) => a + b * mult, middle, stddev);
-    let lower = this.pointwise((a, b) => a - b * mult, middle, stddev);
-    return {lower, upper};
-  }
-  average (arr) {
-    return arr.reduce((sum, value) => sum + value, 0) / arr.length;
-  }
-  standardDeviation (values) {
-    let average = this.average(values);
-
-    let squareDiffs = values.map(value => {
-      let diff = value - average;
-      let sqrDiff = diff * diff;
-      return sqrDiff;
-    });
-    let averageSquareDiff = this.average(squareDiffs);
-    return Math.sqrt(averageSquareDiff);
-  }
-  computeIndicators (start, stop, array, indicators) {
-    let result = {};
-    for (let indicator in indicators) {
-      if (!indicators[indicator].enabled) {
-        continue;
-      }
-      result[indicator] = {
-        params: indicators[indicator].params,
-        type: indicators[indicator].type,
-        dataByPoint: [],
-        multiplyLinesData: {},
-        indicatorsPath: '',
-        data: []
-      }
-      switch (result[indicator].type) {
-        case 'ema' : {
-          let window = +indicators[indicator].values.window;
-          result[indicator].data = this.computeEma(array.slice(0, stop), window);
-          break;
-        }
-        case 'sma' : {
-          let window = +indicators[indicator].values.window;
-          result[indicator].data = this.computeSma(array.slice(0, stop), window);
-          break;
-        }
-        case 'bolinger' : {
-          let window = +indicators[indicator].values.window;
-          result[indicator].data = this.computeBolinger(array.slice(0, stop), window);
-          result[indicator].multiplyLinesData = { lower: [], upper: [] };
-          break;
-        }
-        default: break;
-      }
-    }
-    return result;
-  }
-  placeIndicatorsByPoint (indicators, start, stop, array, offset, factors) {
-    for (let index = start; index < stop; index++) {
-      let candle = array[index];
-      let x = (candle.timestamp - offset) * factors.x;
-      for (let indicator in indicators) {
-        switch (indicators[indicator].type) {
-          case 'ema' :
-          case 'sma' : {
-            let sma = indicators[indicator].data;
-            let indicatorLength = sma.length;
-            let indicatorDif = indicatorLength - (stop - start);
-            let pointY = (factors.high - (sma[index - start + indicatorDif] || candle.close)) * factors.y;
-            indicators[indicator].dataByPoint.push([x, pointY]);
-            break;
-          }
-          case 'bolinger' : {
-            for (let line in indicators[indicator].data) {
-              let lineData = indicators[indicator].data[line];
-              let indicatorLength = lineData.length;
-              let indicatorDif = indicatorLength - (stop - start);
-              let pointY = (factors.high - (lineData[index - start + indicatorDif] || candle.close)) * factors.y;
-              indicators[indicator].multiplyLinesData[line].push([x, pointY]);
-            }
-            break;
-          }
-          default: break;
-        }
-      }
-    }
-    for (let indicator in indicators) {
-      if (indicators[indicator].dataByPoint.length) {
-        let draw = new SvgDraw(indicators[indicator].dataByPoint);
-        indicators[indicator].indicatorsPath = draw.drawSvgPath();
-      } else if (Object.keys(indicators[indicator].multiplyLinesData).length) {
-        indicators[indicator].indicatorsPath = [];
-        for (let line in indicators[indicator].multiplyLinesData) {
-          let draw = new SvgDraw(indicators[indicator].multiplyLinesData[line]);
-          indicators[indicator].indicatorsPath.push(draw.drawSvgPath());
-        }
-      }
-      delete indicators[indicator].data;
-      delete indicators[indicator].dataByPoint;
-      delete indicators[indicator].type;
-    }
-    return indicators;
-  }
-  findBiggerWindow (indicators) {
-    for (let indicator in indicators) {
-      if (indicators[indicator].values.window && indicators[indicator].values.window > this.data.biggerWindow) {
-        this.data.biggerWindow = indicators[indicator].values.window;
-      }
-    }
-  }
   /**
    * @description Render candles objects
    * @param {Number} offset     - exposition offset
@@ -448,11 +472,14 @@ class BinaryDataWorker {
       volumePath: [],
       indicators: {}
     };
+    let indicatorPaths = {};
     let theCase = this.findCandleWidthForUse(exposition, viewWidth);
     let koofX = viewWidth / exposition;
     result.width = theCase * koofX;
     let dataByCase = this.data.tree[theCase];
-    this.findBiggerWindow(indicators);
+    let techIndicators = new TechIndicators(dataByCase, indicators);
+    this.data.biggerWindow = techIndicators.findBiggerWindow();
+    debugger;
     if (dataByCase && this.data.lastResolution === theCase) {
       let start = 0;
       let stop = dataByCase.length;
@@ -525,14 +552,8 @@ class BinaryDataWorker {
         rCandle.x = x;
         result.candles.push(rCandle);
       }
-      this.renderIndicatorsAfterCandles(offset, exposition, indicators, viewWidth, viewHeight, {
-        theCase: theCase,
-        start: start,
-        stop: stop,
-        x: koofX,
-        y: yFactor,
-        high: result.high
-      });
+      techIndicators.setParams(start, stop, koofX, yFactor, result.high, offset);
+      indicatorPaths = techIndicators.getIndicatorsPath();
     }
     let resolution = this.findAvailableResolution(theCase);
     let additionalOffset = this.data.biggerWindow * 2 * resolution || this.params.defaultExposition;
@@ -551,101 +572,8 @@ class BinaryDataWorker {
       this.params.needDropData = true;
     }
     this.data.lastResolution = theCase;
+    this.sendMessage('RENDERED', { type: 'indicators', data: indicatorPaths});
     this.sendMessage('RENDERED', { type: 'candles', data: result });
-  }
-  renderIndicators (offset, exposition, indicators, viewWidth, viewHeight) {
-    let result = {};
-    let theCase = this.findCandleWidthForUse(exposition, viewWidth);
-    let xFactor = viewWidth / exposition;
-    let dataByCase = this.data.tree[theCase];
-    let start = 0;
-    let atLeastOneEnabled = false;
-    if (Object.keys(indicators).length) {
-      for (let item in indicators) {
-        if (indicators[item].enabled) {
-          atLeastOneEnabled = true;
-          break;
-        }
-      }
-    }
-    if (dataByCase && atLeastOneEnabled) {
-      let stop = dataByCase.length;
-      let high = null;
-      let low = null;
-      if (offset > this.data.start) {
-        start = -Math.floor((offset - this.data.start) / theCase);
-      }
-
-      for (let index = -start; index < stop; index++) {
-        let candle = dataByCase[index];
-        if (candle.timestamp <= offset) {
-          continue;
-        } else if (candle.timestamp > offset + exposition) {
-          stop = index;
-          break;
-        } else if (start < 0) {
-          start = index;
-        }
-        if ((low == null) || (low > candle.low)) {
-          low = candle.low;
-        }
-        if ((high == null) || (high < candle.high)) {
-          high = candle.high;
-        }
-      }
-
-      start = Math.abs(start);
-      if (stop == null) {
-        stop = dataByCase.length;
-      }
-      let yFactor = 0;
-      if (high !== low) {
-        yFactor = viewHeight / (high - low);
-      } else {
-        yFactor = viewHeight / (high * 1.1 - low);
-      }
-      let close = dataByCase.map(value => value.close);
-      let computedIndicators = this.computeIndicators(start, stop, close, indicators);
-      result = this.placeIndicatorsByPoint(computedIndicators, start, stop, dataByCase, offset, {x: xFactor, y: yFactor, high: high});
-    }
-    this.sendMessage('RENDERED', {
-      type: 'indicators',
-      data: {
-        indicators: result
-      }
-    });
-  }
-  renderIndicatorsAfterCandles (offset, exposition, indicators, viewWidth, viewHeight, factors) {
-    let result = {};
-    let dataByCase = this.data.tree[factors.theCase];
-    let atLeastOneEnabled = false;
-    if (Object.keys(indicators).length) {
-      for (let item in indicators) {
-        if (indicators[item].enabled) {
-          atLeastOneEnabled = true;
-          break;
-        }
-      }
-    }
-    if (dataByCase && atLeastOneEnabled) {
-      let close = dataByCase.map(value => value.close);
-      let computedIndicators = this.computeIndicators(factors.start, factors.stop, close, indicators);
-      result = this.placeIndicatorsByPoint(
-        computedIndicators,
-        factors.start,
-        factors.stop,
-        dataByCase,
-        offset,
-        {x: factors.x, y: factors.y, high: factors.high}
-        );
-    }
-
-    this.sendMessage('RENDERED', {
-      type: 'indicators',
-      data: {
-        indicators: result
-      }
-    });
   }
   returnEmptyData () {
     this.sendMessage('RENDERED', {
