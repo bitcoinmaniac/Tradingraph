@@ -35,7 +35,6 @@ export default {
     let binaryWorker = new BinaryWorker();
     binaryWorker.onmessage = this.onBinaryWorkerMessage;
     binaryWorker.redraw = this.render;
-    binaryWorker.renderIndicators = this.renderIndicators;
     this.workers.binaryWorker = binaryWorker;
     this.workers.binaryWorker.requestedParams = [];
   },
@@ -61,15 +60,10 @@ export default {
             switch (message.data.body.type[i]) {
               case 'candleData': {
                 this.renderCandles();
-                this.renderIndicators();
                 break;
               }
               case 'averageData': {
                 this.renderAverage();
-                break;
-              }
-              case 'indicatorData': {
-                this.renderIndicators();
                 break;
               }
               default: break;
@@ -123,8 +117,6 @@ export default {
     },
     render () {
       this.renderCandles();
-      this.renderAverage();
-      this.renderIndicators();
     },
     renderCandles () {
       if (this.chart.width && this.chart.height) {
@@ -151,19 +143,6 @@ export default {
           viewHeight: this.sizes.navigator.height
         }
       });
-    },
-    renderIndicators () {
-      // this.workers.binaryWorker.postMessage({
-      //   task: 'RENDER',
-      //   params: {
-      //     type: 'indicators',
-      //     offset: this.interval.offset,
-      //     exposition: this.exposition,
-      //     indicators: this.indicators,
-      //     viewWidth: this.width - this.axisXOffset,
-      //     viewHeight: this.chart.height
-      //   }
-      // });
     },
     findRequestedParam (newParams, requestedParam) {
       let availableParams = [];

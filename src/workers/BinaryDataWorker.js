@@ -657,7 +657,6 @@ class BinaryDataWorker {
     return true;
   }
   messageHandler (message) {
-    // console.log('GET', message.data.task);
     switch (message.data.task) {
       case 'SET_PARAMS': {
         this.setParams(message.data.params);
@@ -696,10 +695,6 @@ class BinaryDataWorker {
             this.renderCandles(params.offset, params.exposition, params.viewWidth, params.viewHeight, params.indicators);
             break;
           }
-          case 'indicators': {
-            this.renderIndicators(params.offset, params.exposition, params.indicators, params.viewWidth, params.viewHeight);
-            break;
-          }
           default: break;
         }
         break;
@@ -720,7 +715,6 @@ class BinaryDataWorker {
    * @param {Object} body - data for message depends on command
    */
   sendMessage (type, body = null) {
-    // console.log('SEND', type);
     postMessage({type, body});
   }
 }
