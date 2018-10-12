@@ -32,10 +32,10 @@
            :style="{cursor: interactive.cursor}"
            ref="chart"
       >
-        <symbol id="indicators-path-symbol" :viewBox="`0 0 ${width - axisXOffset} ${chart.height}`">
+        <symbol id="indicators-path-symbol" :viewBox="`0 0 ${widthWithoutYAxis} ${chart.height}`">
           <indicators-render :indicatorData="indicatorDisplayableData"></indicators-render>
         </symbol>
-        <symbol v-if="candles" id="candles-path-symbol" :viewBox="`0 0 ${width - axisXOffset} ${chart.height}`">
+        <symbol v-if="candles" id="candles-path-symbol" :viewBox="`0 0 ${widthWithoutYAxis} ${chart.height}`">
           <path class="candles-path-positive" :d="positiveCandlesPath"/>
           <path class="candles-path-negative" :d="negativeCandlesPath"/>
           <path class="candles-path-volume" :d="volumeCandlesPath"/>
@@ -60,8 +60,8 @@
           </text>
         </g>
         <g v-else-if="candles">
-          <use xlink:href="#indicators-path-symbol" :y="offsets.chartTop" :width="width - axisXOffset" :height="chart.height"></use>
-          <use xlink:href="#candles-path-symbol" :y="offsets.chartTop" :width="width - axisXOffset" :height="chart.height"></use>
+          <use xlink:href="#indicators-path-symbol" :y="offsets.chartTop" :width="widthWithoutYAxis" :height="chart.height"></use>
+          <use xlink:href="#candles-path-symbol" :y="offsets.chartTop" :width="widthWithoutYAxis" :height="chart.height"></use>
           <g v-if="interactive.hoverCandle">
             <text :y="15" :x="8" style="text-anchor: start; font-family: 'Roboto', monospace" :font-size="interactiveTool.fontSize"
                   :style="hoverColor(interactive.hoverCandle.open, interactive.hoverCandle.close)">
@@ -76,7 +76,7 @@
                   :fractionLimit="interactive.fraction.limit"/>
           <axis-x v-if="candles && candles.candles.length" :chart-height="chart.height" :chart-width="width" :time-parts="zoom.time_parts" :exposition="exposition"
                   :offset="interval.offset" :dpi="dpi" :candleWidth="candles && candles.width || 3" :chart-offset="offsets.chartBottom"
-                  :transform="`scale(${(width - axisXOffset) / width} 1)`"/>
+                  :transform="`scale(${(widthWithoutYAxis) / width} 1)`"/>
           <crosshair :chart-height="chart.height" :chart-width="widths.crosshair" :fractionLimit="interactive.fraction.limit"
                      :chart-offset="offsets.chartTop" :candles="candles" :interactive="interactive" />
         </g>

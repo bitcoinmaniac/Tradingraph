@@ -90,6 +90,10 @@ export default {
         return this.widths.rightPanel + this.candles.width / 4;
       }
       return 90;
+    },
+    widthWithoutYAxis () {
+      let width = this.width - this.axisXOffset;
+      return width > 0 ? width : 0;
     }
   },
   watch: {

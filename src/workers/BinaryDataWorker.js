@@ -5,7 +5,7 @@ class SvgDraw {
     this.points = points;
     this.smoothing = 0.2;
   }
-  line (pointA, pointB)  {
+  _line (pointA, pointB)  {
     const lengthX = pointB[0] - pointA[0];
     const lengthY = pointB[1] - pointA[1];
     return {
@@ -13,7 +13,7 @@ class SvgDraw {
       angle: Math.atan2(lengthY, lengthX)
     };
   }
-  controlPoint (current, previous, next, reverse) {
+  _controlPoint (current, previous, next, reverse) {
     // When 'current' is the first or last point of the array
     // 'previous' or 'next' don't exist.
     // Replace with 'current'
@@ -21,7 +21,7 @@ class SvgDraw {
     const n = next || current;
 
     // Properties of the opposed-line
-    const o = this.line(p, n);
+    const o = this._line(p, n);
 
     // If is end-control-point, add PI to the angle to go backward
     const angle = o.angle + (reverse ? Math.PI : 0);
@@ -32,18 +32,18 @@ class SvgDraw {
     const y = current[1] + Math.sin(angle) * length;
     return [x, y];
   }
-  bezierCommand (point, i, a) {
+  _bezierCommand (point, i, a) {
     // start control point
-    const cps = this.controlPoint(a[i - 1], a[i - 2], point);
+    const cps = this._controlPoint(a[i - 1], a[i - 2], point);
 
     // end control point
-    const cpe = this.controlPoint(point, a[i - 1], a[i + 1], true);
+    const cpe = this._controlPoint(point, a[i - 1], a[i + 1], true);
     return `C ${cps[0]},${cps[1]} ${cpe[0]},${cpe[1]} ${point[0]},${point[1]}`;
   }
   drawSvgPath () {
     // build the d attributes by looping over the points
     return this.points.reduce(
-      (acc, point, i, a) => i === 0 ? `M ${point[0]},${point[1]}` : `${acc} ${this.bezierCommand(point, i, a)}`,
+      (acc, point, i, a) => i === 0 ? `M ${point[0]},${point[1]}` : `${acc} ${this._bezierCommand(point, i, a)}`,
       ''
     );
   }
@@ -51,7 +51,7 @@ class SvgDraw {
 class TechIndicators {
   constructor (data, indicators) {
     this.data = data || [];
-    this.indicators = this.getOnlyActiveIndicators(indicators) || {};
+    this.indicators = this._getOnlyActiveIndicators(indicators) || {};
     this.params = {
       start: null,
       stop: null,
@@ -64,7 +64,7 @@ class TechIndicators {
   setParams (start = 0, stop = 0, xFactor = 0, yFactor = 0, highPoint = 0, offset = 0) {
     this.params = {start, stop, xFactor, yFactor, highPoint, offset}
   }
-  getOnlyActiveIndicators (indicators) {
+  _getOnlyActiveIndicators (indicators) {
     let activeIndicators = {};
     if (typeof indicators === 'object') {
       for (let indicator in indicators) {
@@ -83,82 +83,82 @@ class TechIndicators {
     }
     return activeIndicators;
   }
-  pointwise (fn, firstArray, secondArray) {
+  _pointwise (fn, firstArray, secondArray) {
     let result = [];
     for (let i = 0, len = firstArray.length; i < len; i++) {
       result.push(fn(firstArray[i], secondArray[i]));
     }
     return result;
   }
-  average (arr) {
+  _average (arr) {
     return arr.reduce((sum, value) => sum + value, 0) / arr.length;
   }
-  standardDeviation (values) {
-    let average = this.average(values);
+  _standardDeviation (values) {
+    let average = this._average(values);
 
     let squareDiffs = values.map(value => {
       let diff = value - average;
       let sqrDiff = diff * diff;
       return sqrDiff;
     });
-    let averageSquareDiff = this.average(squareDiffs);
+    let averageSquareDiff = this._average(squareDiffs);
     return Math.sqrt(averageSquareDiff);
   }
-  computeSma (array, windowSize) {
+  _computeSma (array, windowSize) {
     let window = windowSize || array.length;
     let result = [];
     for (let i = 0; i < array.length; i++) {
       if (i + 1 < window) {
         result.push(NaN);
       } else {
-        result.push(this.average(array.slice(i + 1 - window, i + 1)));
+        result.push(this._average(array.slice(i + 1 - window, i + 1)));
       }
     }
     return result;
   }
-  computeEma (array, windowSize) {
+  _computeEma (array, windowSize) {
     let weight = 2 / (windowSize + 1);
-    let ema = [this.average(array.slice(0, windowSize))];
+    let ema = [this._average(array.slice(0, windowSize))];
     for (let i = 1; i < array.length; i++) {
       ema.push(array[i] * weight + ema[i - 1] * (1 - weight));
     }
     return ema;
   }
-  computeStdev (array, windowSize) {
+  _computeStdev (array, windowSize) {
     let window = windowSize || array.length;
     let result = [];
     for (let i = 0; i < array.length; i++) {
       if (i + 1 < window) {
         result.push(NaN);
       } else {
-        result.push(this.standardDeviation(array.slice(i + 1 - window, i + 1)));
+        result.push(this._standardDeviation(array.slice(i + 1 - window, i + 1)));
       }
     }
     return result;
   }
-  computeBolinger (array, window, mult = 2) {
-    let middle = this.computeSma(array, window);
-    let stddev = this.computeStdev(array, window);
-    let upper = this.pointwise((a, b) => a + b * mult, middle, stddev);
-    let lower = this.pointwise((a, b) => a - b * mult, middle, stddev);
+  _computeBolinger (array, window, mult = 2) {
+    let middle = this._computeSma(array, window);
+    let stddev = this._computeStdev(array, window);
+    let upper = this._pointwise((a, b) => a + b * mult, middle, stddev);
+    let lower = this._pointwise((a, b) => a - b * mult, middle, stddev);
     return {lower, upper};
   }
-  computeIndicators (start, stop) {
+  _computeIndicators (start, stop, array) {
     for (let indicator in this.indicators) {
       switch (this.indicators[indicator].type) {
         case 'ema' : {
           let window = +this.indicators[indicator].values.window;
-          this.indicators.data = this.computeEma(this.data.slice(0, stop), window);
+          this.indicators[indicator].data = this._computeEma(array.slice(0, stop), window);
           break;
         }
         case 'sma' : {
           let window = +this.indicators[indicator].values.window;
-          this.indicators[indicator].data = this.computeSma(this.data.slice(0, stop), window);
+          this.indicators[indicator].data = this._computeSma(array.slice(0, stop), window);
           break;
         }
         case 'bolinger' : {
           let window = +this.indicators[indicator].values.window;
-          this.indicators[indicator].data = this.computeBolinger(this.data.slice(0, stop), window);
+          this.indicators[indicator].data = this._computeBolinger(array.slice(0, stop), window);
           this.indicators[indicator].multiplyLinesData = { lower: [], upper: [] };
           break;
         }
@@ -176,7 +176,8 @@ class TechIndicators {
     return biggerWindow;
   }
   getIndicatorsPath () {
-    this.computeIndicators(this.params.start, this.params.stop);
+    let close = this.data.map(candle => candle.close);
+    this._computeIndicators(this.params.start, this.params.stop, close);
     for (let index = this.params.start; index < this.params.stop; index++) {
       let candle = this.data[index];
       let x = (candle.timestamp - this.params.offset) * this.params.xFactor;
@@ -209,7 +210,7 @@ class TechIndicators {
       if (this.indicators[indicator].dataByPoint.length) {
         let draw = new SvgDraw(this.indicators[indicator].dataByPoint);
         this.indicators[indicator].indicatorsPath = draw.drawSvgPath();
-      } else if (Object.keys(indicators[indicator].multiplyLinesData).length) {
+      } else if (Object.keys(this.indicators[indicator].multiplyLinesData).length) {
         this.indicators[indicator].indicatorsPath = [];
         for (let line in indicators[indicator].multiplyLinesData) {
           let draw = new SvgDraw(this.indicators[indicator].multiplyLinesData[line]);
@@ -479,7 +480,6 @@ class BinaryDataWorker {
     let dataByCase = this.data.tree[theCase];
     let techIndicators = new TechIndicators(dataByCase, indicators);
     this.data.biggerWindow = techIndicators.findBiggerWindow();
-    debugger;
     if (dataByCase && this.data.lastResolution === theCase) {
       let start = 0;
       let stop = dataByCase.length;
